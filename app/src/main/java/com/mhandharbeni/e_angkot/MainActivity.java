@@ -31,6 +31,8 @@ public class MainActivity extends BaseActivity {
         SpannableStringBuilder snackbarText = new SpannableStringBuilder();
         snackbarText.append("Selamat Datang");
         showSnackBar(mainLayout, snackbarText);
+
+        idTitle.setText("Test Text");
     }
 
     @OnClick(R.id.switch1)
