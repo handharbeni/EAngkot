@@ -44,6 +44,10 @@ public class ToolsFirebase {
         mFirestore.setFirestoreSettings(settings);
     }
 
+    public FirebaseFirestore getDb(){
+        return mFirestore;
+    }
+
     public void sendDataToFirestore(String collection, String document, Map<String, String> data, SetOptions setOptions, SendToolsListener toolsListener){
         try {
             this.sendToolsListener = toolsListener;

@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">E-Angkot</string>
+    <string name="txt_email">EMAIL / USERNAME</string>
+    <string name="txt_password">PASSWORD</string>
+    <string name="txt_repeat_password">ULANGI PASSWORD</string>
+    <string name="txt_daftar">Daftar?</string>
+    <string name="txt_masuk">Masuk</string>
+    <string name="txt_label_user">Daftar Sebagai User</string>
+    <string name="txt_label_driver">Daftar Sebagai Driver</string>
+    <string name="txt_label_masuk">Masuk?</string>
+    <string name="txt_label_masuk_user">Masuk Sebagai User</string>
+    <string name="txt_label_masuk_driver">Masuk Sebagai Driver</string>
 </resources>
