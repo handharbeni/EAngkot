@@ -17,9 +17,11 @@ import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.MainActivity;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.utils.Constant;
+import com.pddstudio.preferences.encrypted.EncryptedPreferences;
 
 public class LocationServices extends Service {
     private final LocationServiceBinder binder = new LocationServiceBinder();
@@ -52,6 +54,11 @@ public class LocationServices extends Service {
         {
             mLastLocation = location;
             Constant.mLastLocation = mLastLocation;
+            if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")){
+                com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(CoreApplication.getPref().getString(Constant.ID_USER, "0"), String.valueOf(mLastLocation.getLatitude()), String.valueOf(mLastLocation.getLongitude()), CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"));
+                String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")?Constant.COLLECTION_TRACK_USER:Constant.COLLECTION_TRACK_DRIVER;
+                CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
+            }
             Log.i(TAG, "LocationChanged: "+location);
         }
 

@@ -2,6 +2,7 @@ package com.mhandharbeni.e_angkot.main_activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
@@ -9,18 +10,29 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+import com.mhandharbeni.e_angkot.MainActivity;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
+
+import java.util.function.Consumer;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -144,6 +156,17 @@ public class LoginActivity extends BaseActivity {
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0){
                 showToast(getApplicationContext(), "Sukses Login");
+                for (DocumentSnapshot documentSnapshot : task.getResult()){
+                    showToast(getApplicationContext(), documentSnapshot.getId());
+
+                    setPref(Constant.ID_USER, documentSnapshot.getId());
+                    setPref(Constant.ID_TOKEN, Constant.TOKEN);
+
+                    String latitude = Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLatitude()):"0.0";
+                    String longitude= Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLongitude()):"0.0";
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
+                    getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
+                }
             }else{
                 showToast(getApplicationContext(), "Gagal Login");
             }
@@ -159,6 +182,17 @@ public class LoginActivity extends BaseActivity {
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0){
                 showToast(getApplicationContext(), "Sukses Login");
+                for (DocumentSnapshot documentSnapshot : task.getResult()){
+                    showToast(getApplicationContext(), documentSnapshot.getId());
+
+                    setPref(Constant.ID_USER, documentSnapshot.getId());
+                    setPref(Constant.ID_TOKEN, Constant.TOKEN);
+
+                    String latitude = Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLatitude()):"0.0";
+                    String longitude= Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLongitude()):"0.0";
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
+                    getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
+                }
             }else{
                 showToast(getApplicationContext(), "Gagal Login");
             }
