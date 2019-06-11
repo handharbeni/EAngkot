@@ -19,13 +19,13 @@ public class SplashScreen extends BaseActivity {
         ButterKnife.bind(this);
         hideActionBar();
         new Handler().postDelayed(() -> {
-            if (getPref(Constant.IS_LOGGIN, false)){
+            if (getPref(Constant.IS_LOGGIN, false)) {
                 startActivity(new Intent(SplashScreen.this, MainActivity.class));
-            }else{
+            } else {
                 startActivity(new Intent(SplashScreen.this, LoginActivity.class));
             }
             finish();
-        },2000);
+        }, 2000);
 
     }
 }

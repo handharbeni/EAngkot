@@ -30,7 +30,7 @@ public class MainActivity extends BaseActivity {
 
     private void openSettings() {
         Intent intent = new Intent();
-        intent.setAction( Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
         Uri uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null);
         intent.setData(uri);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

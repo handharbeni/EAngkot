@@ -3,6 +3,7 @@ package com.mhandharbeni.e_angkot.model;
 public class User {
     String email;
     String password;
+
     public User() {
     }
 

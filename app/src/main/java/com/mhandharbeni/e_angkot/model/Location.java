@@ -5,6 +5,7 @@ public class Location {
     String latitude;
     String longitude;
     String token;
+
     public Location() {
     }
 

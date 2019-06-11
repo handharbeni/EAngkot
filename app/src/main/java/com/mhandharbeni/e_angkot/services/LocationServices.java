@@ -21,7 +21,6 @@ import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.MainActivity;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.utils.Constant;
-import com.pddstudio.preferences.encrypted.EncryptedPreferences;
 
 public class LocationServices extends Service {
     private final LocationServiceBinder binder = new LocationServiceBinder();
@@ -38,54 +37,46 @@ public class LocationServices extends Service {
         return binder;
     }
 
-    private class LocationListener implements android.location.LocationListener
-    {
+    private class LocationListener implements android.location.LocationListener {
         private Location lastLocation = null;
         private final String TAG = "LocationListener";
         private Location mLastLocation;
 
-        public LocationListener(String provider)
-        {
+        public LocationListener(String provider) {
             mLastLocation = new Location(provider);
         }
 
         @Override
-        public void onLocationChanged(Location location)
-        {
+        public void onLocationChanged(Location location) {
             mLastLocation = location;
             Constant.mLastLocation = mLastLocation;
-            if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")){
+            if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")) {
                 com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(CoreApplication.getPref().getString(Constant.ID_USER, "0"), String.valueOf(mLastLocation.getLatitude()), String.valueOf(mLastLocation.getLongitude()), CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"));
-                String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")?Constant.COLLECTION_TRACK_USER:Constant.COLLECTION_TRACK_DRIVER;
+                String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user") ? Constant.COLLECTION_TRACK_USER : Constant.COLLECTION_TRACK_DRIVER;
                 CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
             }
-            Log.i(TAG, "LocationChanged: "+location);
+            Log.i(TAG, "LocationChanged: " + location);
         }
 
         @Override
-        public void onProviderDisabled(String provider)
-        {
+        public void onProviderDisabled(String provider) {
             Log.e(TAG, "onProviderDisabled: " + provider);
         }
 
         @Override
-        public void onProviderEnabled(String provider)
-        {
+        public void onProviderEnabled(String provider) {
             Log.e(TAG, "onProviderEnabled: " + provider);
         }
 
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
+        public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.e(TAG, "onStatusChanged: " + status);
         }
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
 
 
         Notification notification = new Notification(R.drawable.ic_angkot, Constant.CHANNEL_TITLE,
@@ -97,8 +88,7 @@ public class LocationServices extends Service {
     }
 
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         Log.i(TAG, "onCreate");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(Constant.APP_ID, getNotification());
@@ -107,10 +97,8 @@ public class LocationServices extends Service {
     }
 
 
-
     @Override
-    public void onDestroy()
-    {
+    public void onDestroy() {
         super.onDestroy();
         if (mLocationManager != null) {
             try {
@@ -134,7 +122,7 @@ public class LocationServices extends Service {
         mLocationListener = new LocationListener(LocationManager.GPS_PROVIDER);
 
         try {
-            mLocationManager.requestLocationUpdates( LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener );
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener);
 
         } catch (java.lang.SecurityException ex) {
             // Log.i(TAG, "fail to request location update, ignore", ex);

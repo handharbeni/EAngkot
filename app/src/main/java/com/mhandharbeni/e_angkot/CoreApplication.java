@@ -22,7 +22,7 @@ public class CoreApplication extends Application {
         FirebaseMessaging.getInstance().setAutoInitEnabled(true);
         Stetho.initializeWithDefaults(this);
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
-            if (task.isSuccessful()){
+            if (task.isSuccessful()) {
                 Constant.TOKEN = task.getResult().getToken();
             }
         });
@@ -34,11 +34,11 @@ public class CoreApplication extends Application {
         toolsFirebase = new ToolsFirebase(getApplicationContext());
     }
 
-    public static EncryptedPreferences getPref(){
+    public static EncryptedPreferences getPref() {
         return encryptedPreferences;
     }
 
-    public static ToolsFirebase getFirebase(){
+    public static ToolsFirebase getFirebase() {
         return toolsFirebase;
     }
 }

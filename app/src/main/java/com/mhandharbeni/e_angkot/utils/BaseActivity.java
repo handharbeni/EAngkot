@@ -69,119 +69,142 @@ public class BaseActivity extends AppCompatActivity {
         initFirebase();
     }
 
-    private void initFirebase(){
+    private void initFirebase() {
         toolsFirebase = new ToolsFirebase(getApplicationContext());
     }
-    public ToolsFirebase getFirebase(){
+
+    public ToolsFirebase getFirebase() {
         return toolsFirebase;
     }
 
-    private void initActionBar(){
+    private void initActionBar() {
         ActionBar actionBar = getSupportActionBar();
-        getSupportActionBar().setDisplayOptions(actionBar.DISPLAY_SHOW_CUSTOM);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setCustomView(R.layout.actionbar_angkot);
     }
-    public void showActionBar(){
+
+    public void showActionBar() {
         Objects.requireNonNull(getSupportActionBar()).show();
     }
-    public void hideActionBar(){
+
+    public void hideActionBar() {
         Objects.requireNonNull(getSupportActionBar()).hide();
     }
-    public void changeTitleActionBar(String title){
+
+    public void changeTitleActionBar(String title) {
         idTitle.setText(title);
     }
 
-    private void initPref(){
+    private void initPref() {
         encryptedPreferences = new EncryptedPreferences.Builder(this)
                 .withEncryptionPassword(Constant.PASSWORD_PREF)
                 .withPreferenceName(Constant.NAME_PREF)
                 .withSaveAsSingleton(true)
                 .build();
     }
-    public EncryptedPreferences getPref(){
+
+    public EncryptedPreferences getPref() {
         return encryptedPreferences;
     }
-    public void setPref(String key, String value){
+
+    public void setPref(String key, String value) {
         encryptedPreferences.edit()
                 .putString(key, value)
                 .apply();
     }
-    public void setPref(String key, boolean value){
+
+    public void setPref(String key, boolean value) {
         encryptedPreferences.edit()
                 .putBoolean(key, value)
                 .apply();
     }
-    public void setPref(String key, float value){
+
+    public void setPref(String key, float value) {
         encryptedPreferences.edit()
                 .putFloat(key, value)
                 .apply();
     }
-    public void setPref(String key, long value){
+
+    public void setPref(String key, long value) {
         encryptedPreferences.edit()
                 .putLong(key, value)
                 .apply();
     }
-    public void setPref(String key, int value){
+
+    public void setPref(String key, int value) {
         encryptedPreferences.edit()
                 .putInt(key, value)
                 .apply();
     }
-    public String getPref(String key, String defaultValue){
+
+    public String getPref(String key, String defaultValue) {
         return encryptedPreferences.getString(key, defaultValue);
     }
-    public boolean getPref(String key, boolean defaultValue){
+
+    public boolean getPref(String key, boolean defaultValue) {
         return encryptedPreferences.getBoolean(key, defaultValue);
     }
-    public float getPref(String key, float defaultValue){
+
+    public float getPref(String key, float defaultValue) {
         return encryptedPreferences.getFloat(key, defaultValue);
     }
-    public long getPref(String key, long defaultValue){
+
+    public long getPref(String key, long defaultValue) {
         return encryptedPreferences.getLong(key, defaultValue);
     }
-    public int getPref(String key, int defaultValue){
+
+    public int getPref(String key, int defaultValue) {
         return encryptedPreferences.getInt(key, defaultValue);
     }
 
 
-    public void showLog(String TAG, String message){
+    public void showLog(String TAG, String message) {
         writeLog(TAG, message);
     }
-    public void showLog(String message){
+
+    public void showLog(String message) {
         writeLog(TAG, message);
     }
-    private void writeLog(String TAG, String message){
+
+    private void writeLog(String TAG, String message) {
         Log.d(TAG, message);
     }
-    public void showToast(Context context, String message){
+
+    public void showToast(Context context, String message) {
         writeToast(context, message, Toast.LENGTH_SHORT);
     }
-    public void showToast(Context context, String message, int duration){
+
+    public void showToast(Context context, String message, int duration) {
         writeToast(context, message, duration);
     }
-    private void writeToast(Context context, String message, int duration){
+
+    private void writeToast(Context context, String message, int duration) {
         Toast.makeText(context, message, duration).show();
     }
-    public void showSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText){
+
+    public void showSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText) {
         writeSnackBar(coordinatorLayout, snackbarText, Snackbar.LENGTH_LONG);
     }
-    public void showSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText, int duration){
+
+    public void showSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText, int duration) {
         writeSnackBar(coordinatorLayout, snackbarText, duration);
     }
-    private void writeSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText, int duration){
+
+    private void writeSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText, int duration) {
         Snackbar snackbar = Snackbar
                 .make(coordinatorLayout, snackbarText, duration)
                 .setDuration(8000);
         snackbar.show();
     }
 
-    public void startServices(){
+    public void startServices() {
         Dexter.withActivity(this).withPermissions(Constant.listPermission).withListener(new MultiplePermissionsListener() {
             @Override
             public void onPermissionsChecked(MultiplePermissionsReport report) {
                 final Intent intent = new Intent(getApplication(), LocationServices.class);
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     getApplication().startForegroundService(intent);
-                }else{
+                } else {
                     getApplication().startService(intent);
                 }
                 getApplication().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
@@ -193,6 +216,7 @@ public class BaseActivity extends AppCompatActivity {
             }
         }).check();
     }
+
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             String name = className.getClassName();
@@ -209,7 +233,7 @@ public class BaseActivity extends AppCompatActivity {
     };
 
     @OnCheckedChanged(R.id.idSwitch)
-    public void onSwitchActionBar(boolean isChecked){
+    public void onSwitchActionBar(boolean isChecked) {
         showToast(getApplicationContext(), String.valueOf(isChecked));
     }
 }

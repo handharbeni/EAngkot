@@ -2,7 +2,6 @@ package com.mhandharbeni.e_angkot.main_activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
@@ -10,29 +9,21 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
-
-import java.util.function.Consumer;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -84,63 +75,63 @@ public class LoginActivity extends BaseActivity {
         initMode();
     }
 
-    private void initMode(){
-        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+    private void initMode() {
+        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
-        }else{
+        } else {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
         }
     }
 
-    private void initAnimation(){
+    private void initAnimation() {
         rotate = new RotateAnimation(0, 180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotate.setDuration(2000);
         rotate.setRepeatCount(Animation.INFINITE);
         rotate.setInterpolator(new LinearInterpolator());
     }
 
-    private void startRotate(){
+    private void startRotate() {
         icLogo.startAnimation(rotate);
     }
 
-    private void stopRotate(){
+    private void stopRotate() {
         icLogo.clearAnimation();
     }
 
     @OnClick(R.id.fabSwitch)
-    public void clickSwitch(){
-        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+    public void clickSwitch() {
+        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
             setPref(Constant.MODE, "DRIVER");
-        }else{
+        } else {
             setPref(Constant.MODE, "USER");
         }
     }
 
     @OnClick(R.id.txtRegister)
-    public void clickRegister(){
+    public void clickRegister() {
         startActivity(new Intent(this, RegisterActivity.class));
     }
 
     @OnClick(R.id.btnMasuk)
-    public void clickMasuk(){
+    public void clickMasuk() {
         btnMasuk.setEnabled(false);
         startRotate();
-        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
             checkFirebaseAccountUser();
-        }else{
+        } else {
             checkFirebaseAccountDriver();
         }
     }
 
-    public void listenerPref(){
+    public void listenerPref() {
         getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
-            if (key.equalsIgnoreCase(Constant.MODE)){
-                if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+            if (key.equalsIgnoreCase(Constant.MODE)) {
+                if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
-                }else{
+                } else {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
                 }
@@ -148,28 +139,28 @@ public class LoginActivity extends BaseActivity {
         });
     }
 
-    private void checkFirebaseAccountUser(){
+    private void checkFirebaseAccountUser() {
         CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_USER);
-        Query query = user.whereEqualTo("email",txtEmail.getText().toString()).whereEqualTo("password", txtPassword.getText().toString());
+        Query query = user.whereEqualTo("email", txtEmail.getText().toString()).whereEqualTo("password", txtPassword.getText().toString());
 
         Task<QuerySnapshot> querySnapshotTask = query.get();
         querySnapshotTask.addOnCompleteListener(task -> {
-            if (task.getResult().size() > 0){
+            if (task.getResult().size() > 0) {
                 showToast(getApplicationContext(), "Sukses Login");
-                for (DocumentSnapshot documentSnapshot : task.getResult()){
+                for (DocumentSnapshot documentSnapshot : task.getResult()) {
                     showToast(getApplicationContext(), documentSnapshot.getId());
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
 
-                    String latitude = Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLatitude()):"0.0";
-                    String longitude= Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLongitude()):"0.0";
+                    String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
+                    String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
                     Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
                 }
                 setPref(Constant.IS_LOGGIN, true);
                 startActivity(new Intent(this, MainActivity.class));
-            }else{
+            } else {
                 showToast(getApplicationContext(), "Gagal Login");
             }
             stopRotate();
@@ -177,25 +168,25 @@ public class LoginActivity extends BaseActivity {
         });
     }
 
-    private void checkFirebaseAccountDriver(){
+    private void checkFirebaseAccountDriver() {
         CollectionReference driver = getFirebase().getDb().collection(Constant.COLLECTION_DRIVER);
-        Query query = driver.whereEqualTo("email",txtEmail.getText().toString()).whereEqualTo("password", txtPassword.getText().toString());
+        Query query = driver.whereEqualTo("email", txtEmail.getText().toString()).whereEqualTo("password", txtPassword.getText().toString());
         Task<QuerySnapshot> querySnapshotTask = query.get();
         querySnapshotTask.addOnCompleteListener(task -> {
-            if (task.getResult().size() > 0){
+            if (task.getResult().size() > 0) {
                 showToast(getApplicationContext(), "Sukses Login");
-                for (DocumentSnapshot documentSnapshot : task.getResult()){
+                for (DocumentSnapshot documentSnapshot : task.getResult()) {
                     showToast(getApplicationContext(), documentSnapshot.getId());
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
 
-                    String latitude = Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLatitude()):"0.0";
-                    String longitude= Constant.mLastLocation!=null?String.valueOf(Constant.mLastLocation.getLongitude()):"0.0";
+                    String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
+                    String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
                     Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
                 }
-            }else{
+            } else {
                 showToast(getApplicationContext(), "Gagal Login");
             }
             stopRotate();

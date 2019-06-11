@@ -19,7 +19,7 @@ public class FirebaseServices extends FirebaseMessagingService {
 
     @Override
     public void onNewToken(String token) {
-        Log.d(TAG, "onNewToken: "+token);
+        Log.d(TAG, "onNewToken: " + token);
         Constant.TOKEN = token;
     }
 }
