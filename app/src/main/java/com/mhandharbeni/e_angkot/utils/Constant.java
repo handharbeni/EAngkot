@@ -8,6 +8,8 @@ public class Constant {
     public static String CHANNEL_ID = "ChannelGPS";
     public static String CHANNEL_TITLE = "Scanning Location";
 
+    public static String API_MAPS = "AIzaSyDc0nBVJlzxmgVAFhk44SIfNnIWvGDwvh8";
+
 
     public static String[] listPermission = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -32,5 +34,5 @@ public class Constant {
 
 
     public static String TOKEN = "TOKEN";
-
+    public static String IS_LOGGIN = "ISLOGIN";
 }

@@ -192,7 +192,6 @@ public class BaseActivity extends AppCompatActivity {
 
             }
         }).check();
-
     }
     private ServiceConnection serviceConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {

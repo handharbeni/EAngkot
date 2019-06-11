@@ -1,7 +1,6 @@
 package com.mhandharbeni.e_angkot;
 
 import android.app.Application;
-import android.util.Log;
 
 import com.facebook.stetho.Stetho;
 import com.google.firebase.analytics.FirebaseAnalytics;
@@ -10,8 +9,6 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
-
-import static com.mhandharbeni.e_angkot.utils.BaseActivity.TAG;
 
 public class CoreApplication extends Application {
 
@@ -27,7 +24,6 @@ public class CoreApplication extends Application {
         FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(task -> {
             if (task.isSuccessful()){
                 Constant.TOKEN = task.getResult().getToken();
-                Log.d(TAG, "onCreate: "+Constant.TOKEN);
             }
         });
         encryptedPreferences = new EncryptedPreferences.Builder(this)

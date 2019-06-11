@@ -26,9 +26,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
-import com.mhandharbeni.e_angkot.MainActivity;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Location;
+import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
@@ -167,6 +167,8 @@ public class LoginActivity extends BaseActivity {
                     Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
                 }
+                setPref(Constant.IS_LOGGIN, true);
+                startActivity(new Intent(this, MainActivity.class));
             }else{
                 showToast(getApplicationContext(), "Gagal Login");
             }
