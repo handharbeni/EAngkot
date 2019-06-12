@@ -155,7 +155,7 @@ public class LoginActivity extends BaseActivity {
 
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
-                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
                 }
                 setPref(Constant.IS_LOGGIN, true);
@@ -183,9 +183,10 @@ public class LoginActivity extends BaseActivity {
 
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
-                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, Constant.TOKEN);
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
                 }
+                finish();
             } else {
                 showToast(getApplicationContext(), "Gagal Login");
             }
