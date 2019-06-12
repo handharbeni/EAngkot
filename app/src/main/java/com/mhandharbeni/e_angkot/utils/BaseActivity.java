@@ -27,6 +27,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.main_activity.ProfileActivity;
 import com.mhandharbeni.e_angkot.services.LocationServices;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
 
@@ -35,6 +36,7 @@ import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnCheckedChanged;
+import butterknife.OnClick;
 
 @SuppressLint("Registered")
 public class BaseActivity extends AppCompatActivity {
@@ -81,6 +83,11 @@ public class BaseActivity extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setCustomView(R.layout.actionbar_angkot);
+    }
+
+    @OnClick(R.id.idProfile)
+    public void onProfileClick(){
+        startActivity(new Intent(this, ProfileActivity.class));
     }
 
     public void showActionBar() {
