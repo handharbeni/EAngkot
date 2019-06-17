@@ -20,6 +20,7 @@ import androidx.annotation.RequiresApi;
 import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.MainActivity;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
 public class LocationServices extends Service {
@@ -51,9 +52,27 @@ public class LocationServices extends Service {
             mLastLocation = location;
             Constant.mLastLocation = mLastLocation;
             if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")) {
-                com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(CoreApplication.getPref().getString(Constant.ID_USER, "0"), String.valueOf(mLastLocation.getLatitude()), String.valueOf(mLastLocation.getLongitude()), true, CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"));
                 String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user") ? Constant.COLLECTION_TRACK_USER : Constant.COLLECTION_TRACK_DRIVER;
-                CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
+                if (CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")){
+                    com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(
+                            CoreApplication.getPref().getString(Constant.ID_USER, "0"),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude()),
+                            true,
+                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0")
+                    );
+                    CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
+                }else{
+                    LocationDriver locationDriver = new LocationDriver(
+                            CoreApplication.getPref().getString(Constant.ID_USER, "0"),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude()),
+                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"),
+                            CoreApplication.getPref().getString(Constant.ID_JURUSAN, "0"),
+                            true
+                    );
+                    CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(locationDriver);
+                }
             }
             Log.i(TAG, "LocationChanged: " + location);
         }

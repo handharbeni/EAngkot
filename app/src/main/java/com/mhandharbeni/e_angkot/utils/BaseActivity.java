@@ -8,6 +8,7 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.StrictMode;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
@@ -26,17 +27,26 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.main_activity.ProfileActivity;
 import com.mhandharbeni.e_angkot.services.LocationServices;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
 
 @SuppressLint("Registered")
 public class BaseActivity extends AppCompatActivity {
@@ -53,10 +63,6 @@ public class BaseActivity extends AppCompatActivity {
 
     public LocationServices gpsService;
 
-    public EncryptedPreferences encryptedPreferences;
-
-    public ToolsFirebase toolsFirebase;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,16 +73,10 @@ public class BaseActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         startServices();
-        initPref();
-        initFirebase();
-    }
-
-    private void initFirebase() {
-        toolsFirebase = new ToolsFirebase(getApplicationContext());
     }
 
     public ToolsFirebase getFirebase() {
-        return toolsFirebase;
+        return CoreApplication.getFirebase();
     }
 
     private void initActionBar() {
@@ -102,68 +102,60 @@ public class BaseActivity extends AppCompatActivity {
         idTitle.setText(title);
     }
 
-    private void initPref() {
-        encryptedPreferences = new EncryptedPreferences.Builder(this)
-                .withEncryptionPassword(Constant.PASSWORD_PREF)
-                .withPreferenceName(Constant.NAME_PREF)
-                .withSaveAsSingleton(true)
-                .build();
-    }
 
     public EncryptedPreferences getPref() {
-        return encryptedPreferences;
+        return CoreApplication.getPref();
     }
 
     public void setPref(String key, String value) {
-        encryptedPreferences.edit()
+        getPref().edit()
                 .putString(key, value)
                 .apply();
     }
 
     public void setPref(String key, boolean value) {
-        encryptedPreferences.edit()
+        getPref().edit()
                 .putBoolean(key, value)
                 .apply();
     }
 
     public void setPref(String key, float value) {
-        encryptedPreferences.edit()
+        getPref().edit()
                 .putFloat(key, value)
                 .apply();
     }
 
     public void setPref(String key, long value) {
-        encryptedPreferences.edit()
+        getPref().edit()
                 .putLong(key, value)
                 .apply();
     }
 
     public void setPref(String key, int value) {
-        encryptedPreferences.edit()
+        getPref().edit()
                 .putInt(key, value)
                 .apply();
     }
 
     public String getPref(String key, String defaultValue) {
-        return encryptedPreferences.getString(key, defaultValue);
+        return getPref().getString(key, defaultValue);
     }
 
     public boolean getPref(String key, boolean defaultValue) {
-        return encryptedPreferences.getBoolean(key, defaultValue);
+        return getPref().getBoolean(key, defaultValue);
     }
 
     public float getPref(String key, float defaultValue) {
-        return encryptedPreferences.getFloat(key, defaultValue);
+        return getPref().getFloat(key, defaultValue);
     }
 
     public long getPref(String key, long defaultValue) {
-        return encryptedPreferences.getLong(key, defaultValue);
+        return getPref().getLong(key, defaultValue);
     }
 
     public int getPref(String key, int defaultValue) {
-        return encryptedPreferences.getInt(key, defaultValue);
+        return getPref().getInt(key, defaultValue);
     }
-
 
     public void showLog(String TAG, String message) {
         writeLog(TAG, message);
@@ -242,5 +234,45 @@ public class BaseActivity extends AppCompatActivity {
     @OnCheckedChanged(R.id.idSwitch)
     public void onSwitchActionBar(boolean isChecked) {
         showToast(getApplicationContext(), String.valueOf(isChecked));
+    }
+
+    private void sendMessage(String token, String caption, String params) {
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+
+        try {
+            JSONObject mainObject = new JSONObject();
+            JSONObject notifObject = new JSONObject();
+            JSONObject dataObject = new JSONObject();
+
+            notifObject.put("body", caption);
+            notifObject.put("title", "E-Angkot");
+            notifObject.put("priority", "high");
+
+            dataObject.put("params", params);
+
+
+            mainObject.put("to", token);
+            mainObject.put("notification", notifObject);
+            mainObject.put("data", dataObject);
+            mainObject.put("priority", "high");
+
+            OkHttpClient client = new OkHttpClient();
+
+            MediaType mediaType = MediaType.parse("application/json");
+            RequestBody requestBody = RequestBody.create(mediaType, mainObject.toString());
+
+            Request request = new Request.Builder()
+                    .url("https://fcm.googleapis.com/fcm/send")
+                    .post(requestBody)
+                    .addHeader("Content-Type", "application/json")
+                    .addHeader("Authorization", "key=AAAAgSmt8Zk:APA91bGLJfXVXXCF2sTxOZtyO__1KYgAC0PtTvsB7tWWjpdPvtN3PhQU-ooFShey3ui5iKCYqbXVNzPlQNQkLme8SOzJyr5zl4S0Kt_J0gni8itV9IFxumuUo_GByv2wrOPBG5fe4DM7K8P2kLWbaW7xTYnW7MfzJQ")
+                    .build();
+            okhttp3.Response response = client.newCall(request).execute();
+        } catch (JSONException | IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

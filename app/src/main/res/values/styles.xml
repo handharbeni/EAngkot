@@ -1,13 +1,13 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
     </style>
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppTheme.NoActionBar" parent="Theme.MaterialComponents.Light.DarkActionBar.Bridge">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -15,13 +15,31 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
-    <style name="SplashScreenStyle" parent="Theme.AppCompat.NoActionBar">
+    <style name="SplashScreenStyle" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
         <item name="android:windowBackground">@drawable/logo</item>
     </style>
-    <style name="SplassScreenCustom" parent="Theme.AppCompat.NoActionBar">
+    <style name="SplassScreenCustom" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowActionBar">false</item>
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <style name="ChipStyle" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">@color/colorPrimary</item>
+        <item name="android:textAppearance">@style/ChipStyleAppereance</item>
+        <item name="android:textColor">@color/grey</item>
+    </style>
+    <style name="ChipStyleAppereance" parent="Base.TextAppearance.AppCompat.Medium">
+        <item name="chipBackgroundColor">@color/colorPrimary</item>
+        <item name="android:textAppearance">@style/AppTheme</item>
+        <item name="android:textColor">@color/grey</item>
+    </style>
+    <style name="ChipTextStyle" parent="AppTheme">
+        <item name="android:textSize">13dp</item>
+        <item name="android:textColor">#ffffff</item>
+    </style>
+    <style name="ChipTextApperance" parent="TextAppearance.MaterialComponents.Chip">
+        <item name="android:textColor">@android:color/white</item>
     </style>
 </resources>

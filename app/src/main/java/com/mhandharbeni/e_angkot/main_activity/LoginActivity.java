@@ -2,10 +2,12 @@ package com.mhandharbeni.e_angkot.main_activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -13,6 +15,9 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipDrawable;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
@@ -20,6 +25,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
@@ -51,8 +57,14 @@ public class LoginActivity extends BaseActivity {
     @BindView(R.id.ic_logo)
     ImageView icLogo;
 
+    @BindView(R.id.txtJurusan)
+    ChipGroup txtJurusan;
+
     @BindView(R.id.mainLayout)
     RelativeLayout mainLayout;
+
+    @BindView(R.id.mainLayoutChip)
+    HorizontalScrollView mainLayoutChip;
 
 
     RotateAnimation rotate;
@@ -73,6 +85,7 @@ public class LoginActivity extends BaseActivity {
         listenerPref();
         initAnimation();
         initMode();
+        syncJurusan();
     }
 
     private void initMode() {
@@ -131,9 +144,34 @@ public class LoginActivity extends BaseActivity {
                 if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+                    mainLayoutChip.setVisibility(View.GONE);
                 } else {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
+                    mainLayoutChip.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+    }
+
+    public void syncJurusan(){
+        CollectionReference jurusan = getFirebase().getDb().collection(Constant.COLLECTION_JURUSAN);
+        Query query = jurusan;
+        Task<QuerySnapshot> querySnapshotTask = jurusan.get();
+        querySnapshotTask.addOnCompleteListener(task -> {
+            if (task.getResult().size() > 0){
+                for (DocumentSnapshot documentSnapshot : task.getResult()){
+//                    ChipDrawable chipDrawable = ChipDrawable.createFromResource(this, R.xml.layout_chip);
+//                    chipDrawable.setText("TEST");
+//                    Chip chip = new Chip(getApplicationContext());
+//                    chip.setChipDrawable(chipDrawable);
+//                    txtJurusan.addView(chip);
+                    Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
+                    layout_chip.setClickable(true);
+                    layout_chip.setCheckable(true);
+
+                    layout_chip.setChipText(documentSnapshot.getId());
+                    txtJurusan.addView(layout_chip);
                 }
             }
         });

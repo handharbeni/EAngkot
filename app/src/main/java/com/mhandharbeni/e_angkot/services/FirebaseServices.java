@@ -11,6 +11,7 @@ import static com.mhandharbeni.e_angkot.utils.BaseActivity.TAG;
 public class FirebaseServices extends FirebaseMessagingService {
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
+        Log.d(TAG, "onMessageReceived: "+remoteMessage);
         if (remoteMessage.getData().size() > 0) {
             if (remoteMessage.getNotification() != null) {
             }

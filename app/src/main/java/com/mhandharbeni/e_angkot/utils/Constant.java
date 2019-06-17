@@ -29,12 +29,14 @@ public class Constant {
 
     public static String ID_USER = "ID_USER";
     public static String ID_TOKEN = "ID_TOKEN";
+    public static String ID_JURUSAN = "ID_JURUSAN";
 
     public static String COLLECTION_USER = "e_angkot_user";
     public static String COLLECTION_DRIVER = "e_angkot_driver";
     public static String COLLECTION_TRACK_USER = "e_angkot_track_user";
     public static String COLLECTION_TRACK_DRIVER = "e_angkot_track_driver";
     public static String COLLECTION_PROFILE = "e_angkot_profile";
+    public static String COLLECTION_JURUSAN = "e_angkot_jurusan";
 
 
     public static String TOKEN = "TOKEN";
