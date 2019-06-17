@@ -64,6 +64,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
                 <com.google.android.material.chip.ChipGroup
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     app:singleSelection="true"
                     android:id="@+id/txtJurusan"
                     android:layout_width="match_parent"

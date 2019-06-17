@@ -2,6 +2,8 @@ package com.mhandharbeni.e_angkot.main_activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -34,6 +36,7 @@ import com.mhandharbeni.e_angkot.utils.Constant;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnItemSelected;
 
 public class LoginActivity extends BaseActivity {
     @BindView(R.id.fabSwitch)
@@ -66,6 +69,8 @@ public class LoginActivity extends BaseActivity {
     @BindView(R.id.mainLayoutChip)
     HorizontalScrollView mainLayoutChip;
 
+    String checkedJurusan = null;
+
 
     RotateAnimation rotate;
 
@@ -92,9 +97,11 @@ public class LoginActivity extends BaseActivity {
         if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+            mainLayoutChip.setVisibility(View.GONE);
         } else {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
+            mainLayoutChip.setVisibility(View.VISIBLE);
         }
     }
 
@@ -129,12 +136,14 @@ public class LoginActivity extends BaseActivity {
 
     @OnClick(R.id.btnMasuk)
     public void clickMasuk() {
-        btnMasuk.setEnabled(false);
-        startRotate();
-        if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
-            checkFirebaseAccountUser();
-        } else {
-            checkFirebaseAccountDriver();
+        if (validateLogin()){
+            btnMasuk.setEnabled(false);
+            startRotate();
+            if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
+                checkFirebaseAccountUser();
+            } else {
+                checkFirebaseAccountDriver();
+            }
         }
     }
 
@@ -174,6 +183,12 @@ public class LoginActivity extends BaseActivity {
                     txtJurusan.addView(layout_chip);
                 }
             }
+        });
+
+        txtJurusan.setOnCheckedChangeListener((chipGroup, i) -> {
+            Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
+            checkedJurusan = chip.getText().toString();
+            showLog(checkedJurusan);
         });
     }
 
@@ -233,4 +248,22 @@ public class LoginActivity extends BaseActivity {
         });
     }
 
+    private boolean validateLogin(){
+        if (txtEmail.getText().toString().isEmpty()){
+            txtEmail.setError("Cannot Be Null");
+            return false;
+        }
+        if (txtPassword.getText().toString().isEmpty()){
+            txtPassword.setError("Cannot Be Null");
+            return false;
+        }
+        if (!getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+            if (checkedJurusan == null){
+                showSnackBar(mainLayout, new SpannableStringBuilder().append("Jurusan Belum dipilih"));
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
