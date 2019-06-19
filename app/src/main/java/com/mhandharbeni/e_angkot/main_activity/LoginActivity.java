@@ -170,11 +170,6 @@ public class LoginActivity extends BaseActivity {
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0){
                 for (DocumentSnapshot documentSnapshot : task.getResult()){
-//                    ChipDrawable chipDrawable = ChipDrawable.createFromResource(this, R.xml.layout_chip);
-//                    chipDrawable.setText("TEST");
-//                    Chip chip = new Chip(getApplicationContext());
-//                    chip.setChipDrawable(chipDrawable);
-//                    txtJurusan.addView(chip);
                     Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
                     layout_chip.setClickable(true);
                     layout_chip.setCheckable(true);
@@ -187,8 +182,11 @@ public class LoginActivity extends BaseActivity {
 
         txtJurusan.setOnCheckedChangeListener((chipGroup, i) -> {
             Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
-            checkedJurusan = chip.getText().toString();
-            showLog(checkedJurusan);
+            if (chip != null){
+                checkedJurusan = chip.getText().toString();
+            }else{
+                checkedJurusan = null;
+            }
         });
     }
 

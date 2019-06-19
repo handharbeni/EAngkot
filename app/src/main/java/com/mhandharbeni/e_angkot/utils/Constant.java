@@ -37,6 +37,7 @@ public class Constant {
     public static String COLLECTION_TRACK_DRIVER = "e_angkot_track_driver";
     public static String COLLECTION_PROFILE = "e_angkot_profile";
     public static String COLLECTION_JURUSAN = "e_angkot_jurusan";
+    public static String COLLECTION_ORDER = "e_angkot_order";
 
 
     public static String TOKEN = "TOKEN";

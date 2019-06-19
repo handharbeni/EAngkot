@@ -169,8 +169,21 @@ public class RegisterActivity extends BaseActivity {
         String repeatPassword = txtPasswordRepeat.getText().toString();
         User user = new User(email, password);
         if (password.equalsIgnoreCase(repeatPassword)) {
-            String id = getFirebase().getDb().collection(getPref(Constant.MODE, "USER").equalsIgnoreCase("USER") ? Constant.COLLECTION_USER : Constant.COLLECTION_DRIVER).document().getId();
-            getFirebase().getDb().collection(getPref(Constant.MODE, "USER").equalsIgnoreCase("USER") ? Constant.COLLECTION_USER : Constant.COLLECTION_DRIVER).document(id).set(user);
+            String id = getFirebase()
+                    .getDb()
+                    .collection(
+                            getPref(Constant.MODE, "USER").equalsIgnoreCase("USER") ? Constant.COLLECTION_USER : Constant.COLLECTION_DRIVER
+                    )
+                    .document()
+                    .getId();
+            getFirebase()
+                    .getDb()
+                    .collection(
+                            getPref(Constant.MODE, "USER")
+                                    .equalsIgnoreCase("USER") ? Constant.COLLECTION_USER : Constant.COLLECTION_DRIVER
+                    )
+                    .document(id)
+                    .set(user);
         } else {
             txtPasswordRepeat.setError("Password Tidak Sama");
         }
