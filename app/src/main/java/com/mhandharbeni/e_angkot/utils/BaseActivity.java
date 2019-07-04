@@ -5,6 +5,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -12,6 +17,7 @@ import android.os.StrictMode;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,8 +26,13 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.textfield.TextInputEditText;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -29,7 +40,9 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
-import com.mhandharbeni.e_angkot.main_activity.ProfileActivity;
+import com.mhandharbeni.e_angkot.main_activity.LoginActivity;
+import com.mhandharbeni.e_angkot.model.LocationDriver;
+import com.mhandharbeni.e_angkot.model.Profile;
 import com.mhandharbeni.e_angkot.services.LocationServices;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
 
@@ -63,6 +76,12 @@ public class BaseActivity extends AppCompatActivity {
 
     public LocationServices gpsService;
 
+    private LocationListener mLocationListener;
+    private LocationManager mLocationManager;
+    private final int LOCATION_INTERVAL = 2000;
+    private final int LOCATION_DISTANCE = 10;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +91,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        startServices();
+        listenerSwitch();
     }
 
     public ToolsFirebase getFirebase() {
@@ -87,7 +106,49 @@ public class BaseActivity extends AppCompatActivity {
 
     @OnClick(R.id.idProfile)
     public void onProfileClick(){
-        startActivity(new Intent(this, ProfileActivity.class));
+//        startActivity(new Intent(this, ProfileActivity.class));
+        BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
+        View sheetView = getLayoutInflater().inflate(R.layout.activity_profile, null);
+        mBottomSheetDialog.setContentView(sheetView);
+        mBottomSheetDialog.show();
+
+        TextView profileName = sheetView.findViewById(R.id.profile_name);
+        TextInputEditText txtNama = sheetView.findViewById(R.id.txtNama);
+        TextInputEditText txtAlamat = sheetView.findViewById(R.id.txtAlamat);
+        TextInputEditText txtNomorHape = sheetView.findViewById(R.id.txtNomorHape);
+        Button btnUpdate = sheetView.findViewById(R.id.btnUpdate);
+        Button btnKeluar = sheetView.findViewById(R.id.btnLogout);
+
+        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
+            if (documentSnapshot.exists()){
+                profileName.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
+                txtNama.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
+                txtAlamat.setText(Objects.requireNonNull(documentSnapshot.get("alamat")).toString());
+                txtNomorHape.setText(Objects.requireNonNull(documentSnapshot.get("nomorHp")).toString());
+            }
+        });
+
+        btnUpdate.setOnClickListener(view -> {
+            Profile profile = new Profile(
+                    getPref(Constant.ID_USER, "0"),
+                    txtNama.getText().toString(),
+                    txtAlamat.getText().toString(),
+                    "",
+                    txtNomorHape.getText().toString(),
+                    Constant.TypeUser.USER
+            );
+            CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_PROFILE)
+                    .document(CoreApplication.getPref().getString(Constant.ID_USER, "0"))
+                    .set(profile);
+
+            mBottomSheetDialog.dismiss();
+        });
+
+        btnKeluar.setOnClickListener(view -> {
+            setPref(Constant.IS_LOGGIN, false);
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        });
     }
 
     public void showActionBar() {
@@ -102,6 +163,8 @@ public class BaseActivity extends AppCompatActivity {
         idTitle.setText(title);
     }
 
+    public void hideSwitchActionBar(){ idSwitch.setVisibility(View.GONE); }
+
 
     public EncryptedPreferences getPref() {
         return CoreApplication.getPref();
@@ -114,6 +177,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void setPref(String key, boolean value) {
+        Log.d(TAG, "setPref: "+value);
         getPref().edit()
                 .putBoolean(key, value)
                 .apply();
@@ -233,10 +297,14 @@ public class BaseActivity extends AppCompatActivity {
 
     @OnCheckedChanged(R.id.idSwitch)
     public void onSwitchActionBar(boolean isChecked) {
-        showToast(getApplicationContext(), String.valueOf(isChecked));
+        setPref(Constant.DRIVER_ISACTIVE, isChecked);
     }
 
-    private void sendMessage(String token, String caption, String params) {
+    private void listenerSwitch(){
+        idSwitch.setChecked(getPref(Constant.DRIVER_ISACTIVE, false));
+    }
+
+    public void sendMessage(String token, String caption, String params) {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
@@ -272,7 +340,94 @@ public class BaseActivity extends AppCompatActivity {
         } catch (JSONException | IOException e) {
             e.printStackTrace();
         }
+    }
 
+    public BitmapDescriptor bitmapDescriptorFromVector(Context context, int vectorResId) {
+        Drawable vectorDrawable = ContextCompat.getDrawable(context, vectorResId);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
+    }
 
+    public void startTracking() {
+        initializeLocationManager();
+        mLocationListener = new LocationListener("fused");
+
+        try {
+            mLocationManager.requestLocationUpdates("fused", LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener);
+
+        } catch (java.lang.SecurityException ex) {
+            // Log.i(TAG, "fail to request location update, ignore", ex);
+        } catch (IllegalArgumentException ex) {
+            // Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+        }
+
+    }
+
+    private void initializeLocationManager() {
+        if (mLocationManager == null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            }
+        }
+    }
+
+    private class LocationListener implements android.location.LocationListener {
+        private Location lastLocation = null;
+        private final String TAG = "LocationListener";
+        private Location mLastLocation;
+
+        public LocationListener(String provider) {
+            mLastLocation = new Location(provider);
+        }
+
+        @Override
+        public void onLocationChanged(Location location) {
+            mLastLocation = location;
+            Constant.mLastLocation = mLastLocation;
+            if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")) {
+                String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user") ? Constant.COLLECTION_TRACK_USER : Constant.COLLECTION_TRACK_DRIVER;
+                if (CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")){
+                    com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(
+                            CoreApplication.getPref().getString(Constant.ID_USER, "0"),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude()),
+                            true,
+                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0")
+                    );
+                    CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
+                }else{
+                    LocationDriver locationDriver = new LocationDriver(
+                            CoreApplication.getPref().getString(Constant.ID_USER, "0"),
+                            String.valueOf(mLastLocation.getLatitude()),
+                            String.valueOf(mLastLocation.getLongitude()),
+                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"),
+                            CoreApplication.getPref().getString(Constant.ID_JURUSAN, "0"),
+                            true,
+                            CoreApplication.getPref().getString(Constant.PLAT_NO, "N/A"),
+                            CoreApplication.getPref().getBoolean(Constant.DRIVER_ISACTIVE, false)
+                    );
+                    CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(locationDriver);
+                }
+            }
+            Log.i(TAG, "BaseActivity LocationChanged: " + location);
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+            Log.e(TAG, "BaseActivity onProviderDisabled: " + provider);
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+            Log.e(TAG, "BaseActivity onProviderEnabled: " + provider);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+            Log.e(TAG, "BaseActivity onStatusChanged: " + status);
+        }
     }
 }

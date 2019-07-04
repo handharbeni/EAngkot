@@ -30,7 +30,7 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Wiliam Snoe"
+                    android:text="-"
                     android:textColor="#fff"
                     android:textStyle="bold"
                     android:textSize="21sp"/>
@@ -224,19 +224,36 @@
                 </com.google.android.material.textfield.TextInputLayout>
 
             </LinearLayout>
+            <LinearLayout
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <Button
+                    android:id="@+id/btnLogout"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:textSize="15sp"
+                    android:textColor="#fff"
+                    android:background="@drawable/button_style"
+                    android:layout_marginTop="35dp"
+                    android:layout_marginBottom="35dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="KELUAR!"/>
 
-            <Button
-                android:id="@+id/btnUpdate"
-                style="@style/Widget.MaterialComponents.Button"
-                android:textSize="15sp"
-                android:textColor="#fff"
-                android:background="@drawable/button_style"
-                android:layout_marginTop="35dp"
-                android:layout_marginBottom="35dp"
-                android:layout_gravity="center_horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Update Me"/>
+                <Button
+                    android:id="@+id/btnUpdate"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:textSize="15sp"
+                    android:textColor="#fff"
+                    android:background="@drawable/button_style"
+                    android:layout_marginTop="35dp"
+                    android:layout_marginBottom="35dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Update Me"/>
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

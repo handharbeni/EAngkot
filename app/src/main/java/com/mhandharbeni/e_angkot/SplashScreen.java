@@ -20,7 +20,11 @@ public class SplashScreen extends BaseActivity {
         hideActionBar();
         new Handler().postDelayed(() -> {
             if (getPref(Constant.IS_LOGGIN, false)) {
-                startActivity(new Intent(SplashScreen.this, MainActivity.class));
+                if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
+                    startActivity(new Intent(SplashScreen.this, MainActivity.class));
+                } else {
+                    startActivity(new Intent(SplashScreen.this, com.mhandharbeni.e_angkot.second_activity.driver.MainActivity.class));
+                }
             } else {
                 startActivity(new Intent(SplashScreen.this, LoginActivity.class));
             }

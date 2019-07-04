@@ -51,6 +51,7 @@ public class LocationServices extends Service {
         public void onLocationChanged(Location location) {
             mLastLocation = location;
             Constant.mLastLocation = mLastLocation;
+
             if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")) {
                 String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user") ? Constant.COLLECTION_TRACK_USER : Constant.COLLECTION_TRACK_DRIVER;
                 if (CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")){
@@ -69,7 +70,9 @@ public class LocationServices extends Service {
                             String.valueOf(mLastLocation.getLongitude()),
                             CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"),
                             CoreApplication.getPref().getString(Constant.ID_JURUSAN, "0"),
-                            true
+                            true,
+                            CoreApplication.getPref().getString(Constant.PLAT_NO, "N/A"),
+                            CoreApplication.getPref().getBoolean(Constant.DRIVER_ISACTIVE, false)
                     );
                     CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(locationDriver);
                 }
@@ -114,7 +117,6 @@ public class LocationServices extends Service {
         }
         startTracking();
     }
-
 
     @Override
     public void onDestroy() {

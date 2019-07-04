@@ -1,7 +1,13 @@
 package com.mhandharbeni.e_angkot.utils;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.location.Location;
+import android.provider.Settings;
+
+import androidx.appcompat.app.AlertDialog;
 
 public class Constant {
     public enum TypeUser{
@@ -12,7 +18,8 @@ public class Constant {
     public static String CHANNEL_ID = "ChannelGPS";
     public static String CHANNEL_TITLE = "Scanning Location";
 
-    public static String API_MAPS = "AIzaSyDc0nBVJlzxmgVAFhk44SIfNnIWvGDwvh8";
+    public static String API_MAPS = "AIzaSyAr58RiTYuSLPHi4YxexeysNlspy4Yfk_s";
+//    public static String API_MAPS = "AIzaSyDc0nBVJlzxmgVAFhk44SIfNnIWvGDwvh8";
 
     public static String[] listPermission = new String[]{
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -28,6 +35,9 @@ public class Constant {
     public static String MODE = "MODE";
 
     public static String ID_USER = "ID_USER";
+    public static String NAMA_USER = "NAMA_USER";
+    public static String PLAT_NO = "PLAT_NO";
+
     public static String ID_TOKEN = "ID_TOKEN";
     public static String ID_JURUSAN = "ID_JURUSAN";
 
@@ -42,4 +52,33 @@ public class Constant {
 
     public static String TOKEN = "TOKEN";
     public static String IS_LOGGIN = "ISLOGIN";
+
+    public static String DRIVER_ISACTIVE = "DRIVER_ISACTIVE";
+
+    public static String MY_LATITUDE = "MY_LATITUDE";
+    public static String MY_LONGITUDE = "MY_LONGITUDE";
+
+    public static String MY_OLD_LATITUDE = "MY_OLD_LATITUDE";
+    public static String MY_OLD_LONGITUDE = "MY_OLD_LONGITUDE";
+
+    public static void displayPromptForEnablingGPS(
+            final Activity activity)
+    {
+        final AlertDialog.Builder builder =
+                new AlertDialog.Builder(activity);
+        final String action = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
+        final String message = "Enable either GPS or any other location"
+                + " service to find current location.  Click OK to go to"
+                + " location services settings to let you do so.";
+
+        builder.setMessage(message)
+                .setPositiveButton("OK",
+                        (d, id) -> {
+                            activity.startActivity(new Intent(action));
+                            d.dismiss();
+                        })
+                .setNegativeButton("Cancel",
+                        (d, id) -> d.cancel());
+        builder.create().show();
+    }
 }

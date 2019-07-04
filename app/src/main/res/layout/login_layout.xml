@@ -73,6 +73,22 @@
 
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>
+            <com.google.android.material.textfield.TextInputLayout
+                android:visibility="gone"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:id="@+id/platNoText"
+                android:layout_margin="5dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/txtPlatNo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:hint="@string/txt_platnomor"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
             <LinearLayout
                 android:gravity="end"
                 android:orientation="horizontal"

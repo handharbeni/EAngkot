@@ -27,6 +27,7 @@
         <activity android:name=".main_activity.RegisterActivity" />
         <activity android:name=".second_activity.user.MainActivity" />
         <activity android:name=".main_activity.ProfileActivity" />
+        <activity android:name=".second_activity.driver.MainActivity" />
 
         <service android:name=".services.LocationServices" />
         <service android:name=".services.FirebaseServices" >

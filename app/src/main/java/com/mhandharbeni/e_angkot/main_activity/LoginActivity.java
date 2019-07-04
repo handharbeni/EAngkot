@@ -18,17 +18,18 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.chip.Chip;
-import com.google.android.material.chip.ChipDrawable;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
-import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
+import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
@@ -36,7 +37,6 @@ import com.mhandharbeni.e_angkot.utils.Constant;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.OnItemSelected;
 
 public class LoginActivity extends BaseActivity {
     @BindView(R.id.fabSwitch)
@@ -69,6 +69,12 @@ public class LoginActivity extends BaseActivity {
     @BindView(R.id.mainLayoutChip)
     HorizontalScrollView mainLayoutChip;
 
+    @BindView(R.id.txtPlatNo)
+    TextInputEditText txtPlatNo;
+
+    @BindView(R.id.platNoText)
+    TextInputLayout platNoText;
+
     String checkedJurusan = null;
 
 
@@ -98,10 +104,12 @@ public class LoginActivity extends BaseActivity {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
             mainLayoutChip.setVisibility(View.GONE);
+            platNoText.setVisibility(View.GONE);
         } else {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
             fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
             mainLayoutChip.setVisibility(View.VISIBLE);
+            platNoText.setVisibility(View.VISIBLE);
         }
     }
 
@@ -136,6 +144,7 @@ public class LoginActivity extends BaseActivity {
 
     @OnClick(R.id.btnMasuk)
     public void clickMasuk() {
+        Log.d(TAG, "clickMasuk: "+checkedJurusan);
         if (validateLogin()){
             btnMasuk.setEnabled(false);
             startRotate();
@@ -154,10 +163,12 @@ public class LoginActivity extends BaseActivity {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
                     mainLayoutChip.setVisibility(View.GONE);
+                    platNoText.setVisibility(View.GONE);
                 } else {
                     loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
                     fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
                     mainLayoutChip.setVisibility(View.VISIBLE);
+                    platNoText.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -203,6 +214,7 @@ public class LoginActivity extends BaseActivity {
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
+                    setPref(Constant.NAMA_USER, documentSnapshot.get("email").toString());
 
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
@@ -211,6 +223,7 @@ public class LoginActivity extends BaseActivity {
                 }
                 setPref(Constant.IS_LOGGIN, true);
                 startActivity(new Intent(this, MainActivity.class));
+                finish();
             } else {
                 showToast(getApplicationContext(), "Gagal Login");
             }
@@ -220,8 +233,16 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void checkFirebaseAccountDriver() {
+        Log.d(TAG, "checkFirebaseAccountDriver: "+checkedJurusan);
+        String jurusan = checkedJurusan;
+
+        String email = txtEmail.getText().toString();
+        String password = txtPassword.getText().toString();
+        String platNo = txtPlatNo.getText().toString();
+
+
         CollectionReference driver = getFirebase().getDb().collection(Constant.COLLECTION_DRIVER);
-        Query query = driver.whereEqualTo("email", txtEmail.getText().toString()).whereEqualTo("password", txtPassword.getText().toString());
+        Query query = driver.whereEqualTo("email", email).whereEqualTo("password", password);
         Task<QuerySnapshot> querySnapshotTask = query.get();
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0) {
@@ -231,12 +252,24 @@ public class LoginActivity extends BaseActivity {
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
-
+                    setPref(Constant.PLAT_NO, platNo);
+                    setPref(Constant.ID_JURUSAN, jurusan);
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
-                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
+                    LocationDriver location = new LocationDriver(
+                            documentSnapshot.getId(),
+                            latitude,
+                            longitude,
+                            Constant.TOKEN,
+                            jurusan,
+                            true,
+                            platNo,
+                            false
+                    );
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
                 }
+                setPref(Constant.IS_LOGGIN, true);
+                startActivity(new Intent(this, com.mhandharbeni.e_angkot.second_activity.driver.MainActivity.class));
                 finish();
             } else {
                 showToast(getApplicationContext(), "Gagal Login");
@@ -248,16 +281,20 @@ public class LoginActivity extends BaseActivity {
 
     private boolean validateLogin(){
         if (txtEmail.getText().toString().isEmpty()){
-            txtEmail.setError("Cannot Be Null");
+            txtEmail.setError("Tidak Bisa Kosong");
             return false;
         }
         if (txtPassword.getText().toString().isEmpty()){
-            txtPassword.setError("Cannot Be Null");
+            txtPassword.setError("Tidak Bisa Kosong");
             return false;
         }
         if (!getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")){
             if (checkedJurusan == null){
                 showSnackBar(mainLayout, new SpannableStringBuilder().append("Jurusan Belum dipilih"));
+                return false;
+            }
+            if (txtPlatNo.getText().toString().isEmpty()){
+                txtPlatNo.setError("Tidak Boleh Kosong");
                 return false;
             }
         }
