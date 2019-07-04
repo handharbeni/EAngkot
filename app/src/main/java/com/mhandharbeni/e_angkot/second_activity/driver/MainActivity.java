@@ -30,6 +30,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.Room;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
@@ -225,6 +226,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     }
     private void startingApps(){
         if (getPref(Constant.DRIVER_ISACTIVE, false)){
+            createRoom();
             listenOrder();
         }
     }
@@ -233,8 +235,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
                 Log.d(TAG, "listenerPref: "+key+" "+getPref(Constant.DRIVER_ISACTIVE, false));
                 if (getPref(Constant.DRIVER_ISACTIVE, false)) {
+                    createRoom();
                     listenOrder();
                 } else {
+                    deleteRoom();
                     if (trackOrder !=null)
                         trackOrder.remove();
 
@@ -266,5 +270,25 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(mMap.getMyLocation().getLongitude()));
             }
         });
+    }
+    private void createRoom(){
+        Room room = new Room(
+                String.valueOf(getPref(Constant.ID_USER, "0")),String.valueOf(getPref(Constant.PLAT_NO, "0")),
+                "null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null","null");
+
+        getFirebase()
+                .getDb()
+                .collection(Constant.COLLECTION_ROOM)
+                .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
+                .set(room);
+    }
+    private void deleteRoom(){
+        String idUser = String.valueOf(getPref(Constant.ID_USER, "0"));
+        String platNo = String.valueOf(getPref(Constant.PLAT_NO, "0"));
+        getFirebase()
+                .getDb()
+                .collection(Constant.COLLECTION_ROOM)
+                .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
+                .delete();
     }
 }

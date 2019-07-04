@@ -48,6 +48,7 @@ public class Constant {
     public static String COLLECTION_PROFILE = "e_angkot_profile";
     public static String COLLECTION_JURUSAN = "e_angkot_jurusan";
     public static String COLLECTION_ORDER = "e_angkot_order";
+    public static String COLLECTION_ROOM = "e_angkot_room";
 
 
     public static String TOKEN = "TOKEN";
