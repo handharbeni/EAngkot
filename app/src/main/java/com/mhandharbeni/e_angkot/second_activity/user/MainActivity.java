@@ -71,7 +71,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public ListenerRegistration trackDriver;
 
     public Navigation navigation;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,7 +83,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         hideSwitchActionBar();
     }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -119,7 +117,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         centerMaps();
     }
-
     private void centerMaps() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -143,14 +140,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
-
     @Override
     protected void onStart() {
         super.onStart();
         listenOrder();
         listenerPref();
     }
-
     @OnClick(R.id.fabOrder)
     public void clickOrder(){
         if (activeOrder){
@@ -244,7 +239,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             });
         }
     }
-
     private void sendNotificationToDriver(){
         if (checkedJurusan != null){
 
@@ -279,7 +273,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             });
         }
     }
-
     private void setTrack(){
         navigation.clearMaps();
         mMap.clear();
@@ -326,7 +319,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             centerMaps();
         }
     }
-
     private void listenOrder(){
         String idUser = getPref(Constant.ID_USER, "0");
 
@@ -353,7 +345,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         });
     }
-
     @Override
     public void onCompleteLoad(int i, int i1) {
 

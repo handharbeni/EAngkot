@@ -165,7 +165,6 @@ public class BaseActivity extends AppCompatActivity {
 
     public void hideSwitchActionBar(){ idSwitch.setVisibility(View.GONE); }
 
-
     public EncryptedPreferences getPref() {
         return CoreApplication.getPref();
     }

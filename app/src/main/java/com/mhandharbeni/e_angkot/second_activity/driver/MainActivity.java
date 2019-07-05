@@ -5,9 +5,11 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
@@ -19,6 +21,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -42,7 +45,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
     private GoogleMap mMap;
 
     @BindView(R.id.fab)
@@ -57,6 +60,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public ListenerRegistration trackOrder;
     public Navigation navigation;
 
+    LocationManager locationManager;
+    Location location;
+    Criteria criteria;
+    String provider;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,12 +77,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mapFragment.getMapAsync(this);
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
         startingApps();
         listenerPref();
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -97,7 +107,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         }
         mMap.setMyLocationEnabled(true);
-        listenerMyLocation();
 
         navigation = new Navigation();
 
@@ -108,6 +117,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         navigation.setKey(Constant.API_MAPS);
 
         centerMaps();
+
+        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        criteria = new Criteria();
+        criteria.setAccuracy(Criteria.ACCURACY_FINE);
+        criteria.setPowerRequirement(Criteria.POWER_HIGH);
+        criteria.setAltitudeRequired(true);
+        criteria.setSpeedRequired(true);
+        criteria.setCostAllowed(true);
+        criteria.setBearingRequired(true);
+
+        //API level 9 and up
+        criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);
+        criteria.setVerticalAccuracy(Criteria.ACCURACY_HIGH);
+        criteria.setBearingAccuracy(Criteria.ACCURACY_LOW);
+        criteria.setSpeedAccuracy(Criteria.ACCURACY_MEDIUM);
+        provider = locationManager.getBestProvider(criteria, true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+        locationManager.requestLocationUpdates(provider, 10000, 5000, this);
+        location = locationManager.getLastKnownLocation(provider);
     }
     @Override
     public void onCompleteLoad(int i, int i1) {
@@ -122,8 +154,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         }
         Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-        if (location != null)
-        {
+        if (location != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -135,50 +166,62 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
-    private void setTrack(){
-        Log.d(TAG, "setTrack: ");
+    private void setTrack() {
         navigation.clearMaps();
         mMap.clear();
-        if (getPref(Constant.DRIVER_ISACTIVE, false)){
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                listUser.forEach((s, latLng) -> {
-                    LatLng startLocation = new LatLng(
-                            mMap.getMyLocation().getLatitude(),
-                            mMap.getMyLocation().getLongitude()
-                    );
-                    LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
-                    navigation.setStartLocation(startLocation);
-                    navigation.setEndPosition(endLocation);
+        if (location != null) {
+            if (getPref(Constant.DRIVER_ISACTIVE, false)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    if (listUser.size() > 0) {
+                        listUser.forEach((s, latLng) -> {
+                            LatLng startLocation = new LatLng(
+                                    location.getLatitude(),
+                                    location.getLongitude()
+                            );
+                            LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
+                            navigation.setStartLocation(startLocation);
+                            navigation.setEndPosition(endLocation);
 
-                    navigation.setTitleStart("Anda");
-                    navigation.setTitleEnd("User");
+                            navigation.setTitleStart("Anda");
+                            navigation.setTitleEnd("User");
 
-                    navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
-                    navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                            navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                            navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
 
-                    navigation.find(false,false);
-                });
-            }else{
-                for (Map.Entry<String, LatLng> entry : listUser.entrySet()){
-                    LatLng startLocation = new LatLng(
-                            mMap.getMyLocation().getLatitude(),
-                            mMap.getMyLocation().getLongitude()
-                    );
-                    LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
-                    navigation.setStartLocation(startLocation);
-                    navigation.setEndPosition(endLocation);
+                            navigation.find(false, false);
+                        });
+                    }
+                } else {
+                    if (listUser.size() > 0) {
+                        for (Map.Entry<String, LatLng> entry : listUser.entrySet()) {
+                            LatLng startLocation = new LatLng(
+                                    location.getLatitude(),
+                                    location.getLongitude()
+                            );
+                            LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
+                            navigation.setStartLocation(startLocation);
+                            navigation.setEndPosition(endLocation);
 
-                    navigation.setTitleStart("Anda");
-                    navigation.setTitleEnd("User");
+                            navigation.setTitleStart("Anda");
+                            navigation.setTitleEnd("User");
 
-                    navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
-                    navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                            navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                            navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
 
-                    navigation.find(false,false);
+                            navigation.find(false, false);
+                        }
+                    }
+                }
+            } else {
+                centerMaps();
+            }
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
                 }
             }
-        }else{
-            centerMaps();
+            locationManager.requestLocationUpdates(provider, 10000, 5000, this);
         }
     }
     private void listenOrder(){
@@ -252,25 +295,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         });
 
     }
-    private void listenerMyLocation(){
-        mMap.setOnMyLocationChangeListener(location -> {
-            try {
-                if (mMap.getMyLocation() != null){
-                    if (
-                            !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(mMap.getMyLocation().getLatitude())) &&
-                                    !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(mMap.getMyLocation().getLongitude()))
-                    ){
-                        setPref(Constant.MY_OLD_LATITUDE, String.valueOf(mMap.getMyLocation().getLatitude()));
-                        setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(mMap.getMyLocation().getLongitude()));
-                        setTrack();
-                    }
-                }
-            }catch (Exception e){
-                setPref(Constant.MY_OLD_LATITUDE, String.valueOf(mMap.getMyLocation().getLatitude()));
-                setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(mMap.getMyLocation().getLongitude()));
-            }
-        });
-    }
     private void createRoom(){
         Room room = new Room(
                 String.valueOf(getPref(Constant.ID_USER, "0")),String.valueOf(getPref(Constant.PLAT_NO, "0")),
@@ -290,5 +314,31 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 .collection(Constant.COLLECTION_ROOM)
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .delete();
+    }
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+
+        if (
+                !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLatitude())) &&
+                        !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLongitude()))
+        ){
+            setPref(Constant.MY_OLD_LATITUDE, String.valueOf(location.getLatitude()));
+            setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(location.getLongitude()));
+            setTrack();
+        }
+
+    }
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+    @Override
+    public void onProviderDisabled(String provider) {
+
     }
 }
