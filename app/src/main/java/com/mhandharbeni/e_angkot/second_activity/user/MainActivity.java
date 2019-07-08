@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -52,7 +53,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
     private GoogleMap mMap;
 
     @BindView(R.id.fabOrder)
@@ -71,6 +72,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public ListenerRegistration trackDriver;
 
     public Navigation navigation;
+
+    LocationManager locationManager;
+    Location location;
+    Criteria criteria;
+    String provider;
+
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,52 +91,57 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         hideSwitchActionBar();
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        listenerMyLocation();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            } else {
-                Dexter.withActivity(this).withPermissions(Constant.listPermission).withListener(new MultiplePermissionsListener() {
-                    @Override
-                    public void onPermissionsChecked(MultiplePermissionsReport report) {
-
+            Dexter.withActivity(this).withPermissions(Constant.listPermission).withListener(new MultiplePermissionsListener() {
+                @Override
+                public void onPermissionsChecked(MultiplePermissionsReport report) {
+                    if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        return;
                     }
+                    mMap.setMyLocationEnabled(true);
 
-                    @Override
-                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                    navigation = new Navigation();
 
-                    }
-                }).check();
+                    navigation.setMap(mMap);
+                    navigation.setContext(getApplicationContext());
+                    navigation.setActivity(MainActivity.this);
+                    navigation.setListener(MainActivity.this);
+                    navigation.setKey(Constant.API_MAPS);
 
-            }
+                    centerMaps();
+
+                    locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    criteria = new Criteria();
+                    criteria.setAccuracy(Criteria.ACCURACY_FINE);
+                    criteria.setPowerRequirement(Criteria.POWER_HIGH);
+                    criteria.setAltitudeRequired(true);
+                    criteria.setSpeedRequired(true);
+                    criteria.setCostAllowed(true);
+                    criteria.setBearingRequired(true);
+
+                    //API level 9 and up
+                    criteria.setHorizontalAccuracy(Criteria.ACCURACY_HIGH);
+                    criteria.setVerticalAccuracy(Criteria.ACCURACY_HIGH);
+                    criteria.setBearingAccuracy(Criteria.ACCURACY_LOW);
+                    criteria.setSpeedAccuracy(Criteria.ACCURACY_MEDIUM);
+                    provider = locationManager.getBestProvider(criteria, true);
+                    locationManager.requestLocationUpdates(provider, 1000, 500, MainActivity.this);
+                }
+
+                @Override
+                public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+
+                }
+            }).check();
+
         }
-        mMap.setMyLocationEnabled(true);
-
-        navigation = new Navigation();
-
-        navigation.setMap(mMap);
-        navigation.setContext(getApplicationContext());
-        navigation.setActivity(this);
-        navigation.setListener(this);
-        navigation.setKey(Constant.API_MAPS);
-
-        centerMaps();
     }
     private void centerMaps() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Criteria criteria = new Criteria();
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-        }
-        Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
-        if (location != null)
-        {
+        if (location != null){
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -247,27 +260,17 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER);
             Query query = user.whereEqualTo("jurusan", jurusan);
 
-            ListenerRegistration listenerRegistration = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
+            trackDriver = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
                 if (queryDocumentSnapshots.getDocuments().size()>0){
                     for (DocumentSnapshot documentSnapshot:queryDocumentSnapshots.getDocuments()){
-                        Log.d(TAG, "sendNotificationToDriver: "+documentSnapshot.get("token"));
-                        sendMessage(documentSnapshot.get("token").toString(), getPref(Constant.NAMA_USER, "Jhon Doe")+" Sedang Mencari "+jurusan, "");
-                    }
-                }
-            });
-
-            listenerRegistration.remove();
-            mMap.clear();
-            trackDriver = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if (queryDocumentSnapshots.getDocuments().size() > 0){
-                    for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()){
                         LatLng latLngDriver = new LatLng(
                                 Double.valueOf(documentSnapshot.get("latitude").toString()),
                                 Double.valueOf(documentSnapshot.get("longitude").toString())
                         );
-                        listDriver.put(documentSnapshot.get("jurusan").toString(), latLngDriver);
-                    }
+                        listDriver.put(documentSnapshot.get("platNo").toString(), latLngDriver);
 
+//                        sendMessage(documentSnapshot.get("token").toString(), getPref(Constant.NAMA_USER, "Jhon Doe")+" Sedang Mencari "+jurusan, "");
+                    }
                     setTrack();
                 }
             });
@@ -276,47 +279,58 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     private void setTrack(){
         navigation.clearMaps();
         mMap.clear();
-        Log.d(TAG, "setTrack: "+getPref(Constant.DRIVER_ISACTIVE, false));
-        if (getPref(Constant.DRIVER_ISACTIVE, false)){
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                listDriver.forEach((s, latLng) -> {
-                    LatLng startLocation = new LatLng(
-                            mMap.getMyLocation().getLatitude(),
-                            mMap.getMyLocation().getLongitude()
-                    );
-                    LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
-                    navigation.setStartLocation(startLocation);
-                    navigation.setEndPosition(endLocation);
+        Log.d(TAG, "sendNotificationToDriver: "+location);
+        if (location != null){
+            if (listDriver.size() > 0){
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    listDriver.forEach((s, latLng) -> {
+                        Log.d(TAG, "setTrack: "+s+" "+latLng.latitude+" "+latLng.longitude);
+                        LatLng startLocation = new LatLng(
+                                location.getLatitude(),
+                                location.getLongitude()
+                        );
+                        LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
+                        navigation.setStartLocation(startLocation);
+                        navigation.setEndPosition(endLocation);
 
-                    navigation.setTitleStart("Anda");
-                    navigation.setTitleEnd("Angkot");
+                        navigation.setTitleStart("Anda");
+                        navigation.setTitleEnd(s);
 
-                    navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
-                    navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                        navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                        navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
 
-                    navigation.find(false,false);
-                });
-            }else{
-                for (Map.Entry<String, LatLng> entry : listDriver.entrySet()){
-                    LatLng startLocation = new LatLng(
-                            mMap.getMyLocation().getLatitude(),
-                            mMap.getMyLocation().getLongitude()
-                    );
-                    LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
-                    navigation.setStartLocation(startLocation);
-                    navigation.setEndPosition(endLocation);
+                        navigation.find(false,false);
+                    });
+                }else{
+                    for (Map.Entry<String, LatLng> entry : listDriver.entrySet()){
+                        Log.d(TAG, "setTrack: 2 "+entry.getKey()+" "+entry.getValue().latitude+" "+entry.getValue().longitude);
+                        LatLng startLocation = new LatLng(
+                                location.getLatitude(),
+                                location.getLongitude()
+                        );
+                        LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
+                        navigation.setStartLocation(startLocation);
+                        navigation.setEndPosition(endLocation);
 
-                    navigation.setTitleStart("Anda");
-                    navigation.setTitleEnd("Angkot");
+                        navigation.setTitleStart("Anda");
+                        navigation.setTitleEnd(entry.getKey());
 
-                    navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
-                    navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                        navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                        navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
 
-                    navigation.find(false,false);
+                        navigation.find(false,false);
+                    }
                 }
+            }else{
+                centerMaps();
             }
         }else{
-            centerMaps();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+            }
+            locationManager.requestLocationUpdates(provider, 1000, 500, this);
         }
     }
     private void listenOrder(){
@@ -339,34 +353,59 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
     }
     private void listenerPref(){
-        getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
-            if(key.equalsIgnoreCase(Constant.MY_LATITUDE) || key.equalsIgnoreCase(Constant.MY_LONGITUDE)){
-                setTrack();
-            }
-        });
+//        getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
+//            if(key.equalsIgnoreCase(Constant.MY_LATITUDE) || key.equalsIgnoreCase(Constant.MY_LONGITUDE)){
+//                setTrack();
+//            }
+//        });
     }
     @Override
     public void onCompleteLoad(int i, int i1) {
 
     }
-    private void listenerMyLocation(){
-        mMap.setOnMyLocationChangeListener(location -> {
-            try {
-                if (mMap.getMyLocation() != null){
-                    if (
-                            !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(mMap.getMyLocation().getLatitude())) &&
-                                    !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(mMap.getMyLocation().getLongitude()))
-                    ){
-                        setPref(Constant.MY_OLD_LATITUDE, String.valueOf(mMap.getMyLocation().getLatitude()));
-                        setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(mMap.getMyLocation().getLongitude()));
-                        setTrack();
-                    }
-                }
-            }catch (Exception e){
-                setPref(Constant.MY_OLD_LATITUDE, String.valueOf(mMap.getMyLocation().getLatitude()));
-                setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(mMap.getMyLocation().getLongitude()));
+    @Override
+    public void onLocationChanged(Location location) {
+        this.location = location;
+        if (
+                !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLatitude())) &&
+                        !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLongitude()))
+        ) {
+            setPref(Constant.MY_OLD_LATITUDE, String.valueOf(location.getLatitude()));
+            setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(location.getLongitude()));
+            setTrack();
+        }
+    }
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+    @Override
+    protected void onStop() {
+        locationManager.removeUpdates(this);
+        super.onStop();
+    }
+    @Override
+    protected void onDestroy() {
+        locationManager.removeUpdates(this);
+        super.onDestroy();
+    }
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
             }
-        });
+        }
+        locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
 
 }
