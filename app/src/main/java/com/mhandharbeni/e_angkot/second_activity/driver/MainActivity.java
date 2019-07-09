@@ -2,6 +2,7 @@ package com.mhandharbeni.e_angkot.second_activity.driver;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -10,9 +11,13 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -20,11 +25,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -32,15 +41,20 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Room;
+import com.mhandharbeni.e_angkot.model.TravelHistory;
+import com.mhandharbeni.e_angkot.second_activity.driver.adapter.TravelHistoryAdapter;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
+import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
@@ -366,5 +380,75 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
+    @OnClick(R.id.fab)
+    public void onInfoClick(){
+        RecyclerView rvTravelHistory;
+        TextView txtRatingAngkot, txtRatingDriver;
 
+        TravelHistoryAdapter travelHistoryAdapter;
+
+        List<TravelHistory> listTravelHistory = new ArrayList<>();
+
+        BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(MainActivity.this);
+        View sheetView = getLayoutInflater().inflate(R.layout.layout_informasiangkot, null);
+        mBottomSheetDialog.setContentView(sheetView);
+        mBottomSheetDialog.show();
+
+        txtRatingAngkot = sheetView.findViewById(R.id.txtRatingAngkot);
+        txtRatingDriver = sheetView.findViewById(R.id.txtRatingDriver);
+        rvTravelHistory = sheetView.findViewById(R.id.rvTravelHistory);
+
+        CollectionReference collectionRatingAngkot = getFirebase().getDb().collection(Constant.COLLECTION_RATING_ANGKOT);
+        ListenerRegistration listenerAngkot = collectionRatingAngkot.whereEqualTo("platNo", String.valueOf(getPref(Constant.PLAT_NO, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
+            double total = 0;
+            int totalData = 0;
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                total += (double) documentSnapshot.get("rate");
+                totalData++;
+            }
+            total = total / totalData;
+            DecimalFormat formatter = new DecimalFormat("#,###.0");
+            txtRatingAngkot.setText(String.valueOf(formatter.format(total)));
+        });
+
+        CollectionReference collectionRatingDriver = getFirebase().getDb().collection(Constant.COLLECTION_RATING_DRIVER);
+        ListenerRegistration listenerDriver = collectionRatingDriver.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
+            double total = 0;
+            int totalData = 0;
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                total += (double) documentSnapshot.get("rate");
+                totalData++;
+            }
+            total = total / totalData;
+            DecimalFormat formatter = new DecimalFormat("#,###.0");
+            txtRatingDriver.setText(String.valueOf(formatter.format(total)));
+        });
+
+        travelHistoryAdapter = new TravelHistoryAdapter(getApplicationContext(), listTravelHistory);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        rvTravelHistory.setLayoutManager(linearLayoutManager);
+        rvTravelHistory.setAdapter(travelHistoryAdapter);
+
+        showLog(getPref(Constant.ID_USER, "0"));
+
+        CollectionReference collectionHistory = getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY);
+        ListenerRegistration listenerTravel = collectionHistory.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+                showLog(String.valueOf(documentSnapshot.get("idDriver")));
+                TravelHistory travelHistory = new TravelHistory();
+                travelHistory.setIdUser(String.valueOf(documentSnapshot.get("idUser")));
+                travelHistory.setDateMillis((long) documentSnapshot.get("dateMillis"));
+                travelHistory.setIdDriver(String.valueOf(documentSnapshot.get("idDriver")));
+                travelHistory.setPlatNo(String.valueOf(documentSnapshot.get("platNo")));
+                listTravelHistory.add(travelHistory);
+            }
+            travelHistoryAdapter.addListHistory(listTravelHistory);
+        });
+
+        mBottomSheetDialog.setOnDismissListener(dialog -> {
+            listenerAngkot.remove();
+            listenerDriver.remove();
+            listenerTravel.remove();
+        });
+    }
 }
