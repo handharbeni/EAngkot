@@ -55,7 +55,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
-import illiyin.mhandharbeni.libraryroute.Directions;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
@@ -438,6 +437,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             AtomicReference<String> platNo = new AtomicReference<>("0");
             AtomicInteger count = new AtomicInteger();
             count.set(0);
+
             BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
             View sheetView = getLayoutInflater().inflate(R.layout.layout_masukangkot, null);
             mBottomSheetDialog.setContentView(sheetView);

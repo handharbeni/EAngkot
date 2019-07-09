@@ -57,6 +57,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
     public ListenerRegistration trackOrder;
     public Navigation navigation;
+    HashMap<String, Navigation> listNavigation = new HashMap<>();
 
     LocationManager locationManager;
     Location location;
@@ -103,14 +104,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         }
         mMap.setMyLocationEnabled(true);
-
-        navigation = new Navigation();
-
-        navigation.setMap(mMap);
-        navigation.setContext(getApplicationContext());
-        navigation.setActivity(this);
-        navigation.setListener(this);
-        navigation.setKey(Constant.API_MAPS);
 
         centerMaps();
 
@@ -163,13 +156,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
     }
     private void setTrack() {
-        navigation.clearMaps();
         mMap.clear();
         if (location != null) {
             if (getPref(Constant.DRIVER_ISACTIVE, false)) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     if (listUser.size() > 0) {
                         listUser.forEach((s, latLng) -> {
+                            navigation = new Navigation();
+
+                            navigation.setMap(mMap);
+                            navigation.setContext(getApplicationContext());
+                            navigation.setActivity(this);
+                            navigation.setListener(this);
+                            navigation.setKey(Constant.API_MAPS);
+
+
                             LatLng startLocation = new LatLng(
                                     location.getLatitude(),
                                     location.getLongitude()
@@ -185,11 +186,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                             navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
 
                             navigation.find(false, false);
+                            listNavigation.put(s, navigation);
                         });
                     }
                 } else {
                     if (listUser.size() > 0) {
                         for (Map.Entry<String, LatLng> entry : listUser.entrySet()) {
+
+                            navigation = new Navigation();
+
+                            navigation.setMap(mMap);
+                            navigation.setContext(getApplicationContext());
+                            navigation.setActivity(this);
+                            navigation.setListener(this);
+                            navigation.setKey(Constant.API_MAPS);
+
                             LatLng startLocation = new LatLng(
                                     location.getLatitude(),
                                     location.getLongitude()
@@ -205,6 +216,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                             navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
 
                             navigation.find(false, false);
+                            listNavigation.put(entry.getKey(), navigation);
                         }
                     }
                 }
@@ -257,7 +269,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
     }
     private void clearMaps() {
-        navigation.clearMaps();
+        for (Map.Entry<String, Navigation> entry:listNavigation.entrySet()){
+            entry.getValue().clearMaps();
+        }
         mMap.clear();
     }
     private void startingApps() {
@@ -352,4 +366,5 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
+
 }

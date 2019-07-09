@@ -16,7 +16,7 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcCompat="@drawable/ic_angkot"
+        app:srcCompat="@drawable/ic_expand"
         app:layout_anchor="@id/bottomAppBar"/>
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"

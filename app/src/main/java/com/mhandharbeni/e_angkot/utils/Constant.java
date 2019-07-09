@@ -49,6 +49,9 @@ public class Constant {
     public static String COLLECTION_JURUSAN = "e_angkot_jurusan";
     public static String COLLECTION_ORDER = "e_angkot_order";
     public static String COLLECTION_ROOM = "e_angkot_room";
+    public static String COLLECTION_RATING_DRIVER = "e_angkot_rating_driver";
+    public static String COLLECTION_RATING_ANGKOT = "e_angkot_rating_angkot";
+    public static String COLLECTION_TRAVEL_HISTORY = "e_angkot_travel_history";
 
 
     public static String TOKEN = "TOKEN";

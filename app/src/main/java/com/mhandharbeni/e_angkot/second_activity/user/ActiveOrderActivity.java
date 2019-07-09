@@ -3,13 +3,19 @@ package com.mhandharbeni.e_angkot.second_activity.user;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.RatingBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -19,16 +25,23 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.RatingAngkot;
+import com.mhandharbeni.e_angkot.model.RatingDriver;
 import com.mhandharbeni.e_angkot.model.Room;
+import com.mhandharbeni.e_angkot.model.TravelHistory;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import butterknife.BindView;
@@ -120,16 +133,88 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
             room.setIdDriver(idDriver);
             room.setListUser(listUser);
 
+            getFirebase().getDb().collection(Constant.COLLECTION_ROOM).document(platNo).set(room);
+            saveTravelHistory();
+            setRating();
+        });
+    }
+
+    private void setRating(){
+        String platNo = getPref(Constant.ACTIVE_ORDER_PLATNO, "0");
+        String idDriver = getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0");
+        String idUser = getPref(Constant.ID_USER, "0");
+
+
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(ActiveOrderActivity.this);
+        View viewSheet = getLayoutInflater().inflate(R.layout.layout_rating, null);
+        bottomSheetDialog.setContentView(viewSheet);
+        bottomSheetDialog.show();
+
+        RatingBar ratingDriver = viewSheet.findViewById(R.id.ratingDriver);
+        RatingBar ratingAngkot = viewSheet.findViewById(R.id.ratingAngkot);
+        AppCompatButton btnSimpan = viewSheet.findViewById(R.id.btnSimpan);
+
+        btnSimpan.setOnClickListener(view->{
+            float fRatingDriver = ratingDriver.getRating();
+            float fRatingAngkot = ratingAngkot.getRating();
+
+            RatingDriver mRatingDriver = new RatingDriver();
+            mRatingDriver.setIdDriver(idDriver);
+            mRatingDriver.setIdUser(idUser);
+            mRatingDriver.setRate(fRatingDriver);
+
+            getFirebase().getDb().collection(Constant.COLLECTION_RATING_DRIVER).document().set(mRatingDriver);
+
+            RatingAngkot mRatingAngkot = new RatingAngkot();
+            mRatingAngkot.setPlatNo(platNo);
+            mRatingAngkot.setIdUser(idUser);
+            mRatingAngkot.setRate(fRatingAngkot);
+
+            getFirebase().getDb().collection(Constant.COLLECTION_RATING_ANGKOT).document().set(mRatingAngkot);
+
             setPref(Constant.ACTIVE_ORDER_JURUSAN, "null");
             setPref(Constant.ACTIVE_ORDER_COUNT, "null");
             setPref(Constant.ACTIVE_ORDER_IDDRIVER, "null");
             setPref(Constant.ACTIVE_ORDER_PLATNO, "null");
             setPref(Constant.STATE_ORDER, false);
 
-            getFirebase().getDb().collection(Constant.COLLECTION_ROOM).document(platNo).set(room);
-
             startActivity(new Intent(ActiveOrderActivity.this, MainActivity.class));
             finish();
         });
+    }
+
+    private void saveTravelHistory(){
+        try {
+            String key = getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY).getId();
+
+            String platNo = getPref(Constant.ACTIVE_ORDER_PLATNO, "0");
+            String idDriver = getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0");
+            String idUser = getPref(Constant.ID_USER, "0");
+
+
+            Geocoder geocoder;
+            List<Address> addresses;
+            geocoder = new Geocoder(this, Locale.getDefault());
+            addresses = geocoder.getFromLocation(mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude(), 1);
+
+            String address = addresses.get(0).getAddressLine(0);
+
+            TravelHistory travelHistory = new TravelHistory();
+            travelHistory.setIdUser(idUser);
+            travelHistory.setEndDestination(address);
+            travelHistory.setIdDriver(idDriver);
+            travelHistory.setPlatNo(platNo);
+            travelHistory.setDateMillis(System.currentTimeMillis());
+
+            getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY).document().set(travelHistory);
+//            String city = addresses.get(0).getLocality();
+//            String state = addresses.get(0).getAdminArea();
+//            String country = addresses.get(0).getCountryName();
+//            String postalCode = addresses.get(0).getPostalCode();
+//            String knownName = addresses.get(0).getFeatureName(); // Only if available else return NULL
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
