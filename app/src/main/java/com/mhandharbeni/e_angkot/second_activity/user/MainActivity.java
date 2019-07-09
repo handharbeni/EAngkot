@@ -1,7 +1,7 @@
 package com.mhandharbeni.e_angkot.second_activity.user;
 
 import android.Manifest;
-import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -24,6 +24,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -41,16 +42,20 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.ActiveOrder;
+import com.mhandharbeni.e_angkot.model.Room;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import illiyin.mhandharbeni.libraryroute.Directions;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
 public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
@@ -62,14 +67,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     @BindView(R.id.mainLayout)
     CoordinatorLayout mainLayout;
 
+    BottomAppBar bottomAppBar;
+
     HashMap<String, LatLng> listDriver = new HashMap<>();
 
 
     String checkedJurusan = null;
+    String checkAngkot = null;
     public static String idDocument;
     public static boolean activeOrder = false;
 
     public ListenerRegistration trackDriver;
+    public ListenerRegistration trackRoom;
 
     public Navigation navigation;
 
@@ -84,14 +93,24 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         super.onCreate(savedInstanceState);
         startServices();
         setContentView(R.layout.mainactivity_user);
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        bottomAppBar.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()){
+                case R.id.queue:
+                    listPlatDriver();
+                    break;
+            }
+            return false;
+        });
         ButterKnife.bind(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
         hideSwitchActionBar();
-    }
 
+        setToActivePage();
+    }
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -104,13 +123,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     }
                     mMap.setMyLocationEnabled(true);
 
-                    navigation = new Navigation();
-
-                    navigation.setMap(mMap);
-                    navigation.setContext(getApplicationContext());
-                    navigation.setActivity(MainActivity.this);
-                    navigation.setListener(MainActivity.this);
-                    navigation.setKey(Constant.API_MAPS);
 
                     centerMaps();
 
@@ -156,13 +168,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     @Override
     protected void onStart() {
         super.onStart();
+        clearOrder();
         listenOrder();
-        listenerPref();
     }
     @OnClick(R.id.fabOrder)
     public void clickOrder(){
+        String idUser = getPref(Constant.ID_USER, "0");
         if (activeOrder){
-            String idUser = getPref(Constant.ID_USER, "0");
             String idJurusan = checkedJurusan;
             boolean isActive = false;
             ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
@@ -223,7 +235,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     mBottomSheetDialog.dismiss();
                     return;
                 }
-                String idUser = getPref(Constant.ID_USER, "0");
                 String idJurusan = checkedJurusan;
                 boolean isActive = !activeOrder;
                 ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
@@ -235,14 +246,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 Query queryActiveOrder = user.whereEqualTo("idUser", idUser);
                 Task<QuerySnapshot> queryTaskActiveOrder = queryActiveOrder.get();
                 queryTaskActiveOrder.addOnCompleteListener(task -> {
-                    if (task.getResult().size() > 0){
-                        idDocument = task.getResult().getDocuments().get(0).getId();
-                    }
                     CoreApplication
                             .getFirebase()
                             .getDb()
                             .collection(Constant.COLLECTION_ORDER)
-                            .document(idDocument)
+                            .document(idUser)
                             .set(activeOrder);
                     sendNotificationToDriver();
                 });
@@ -277,19 +285,27 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
     }
     private void setTrack(){
-        navigation.clearMaps();
         mMap.clear();
         Log.d(TAG, "sendNotificationToDriver: "+location);
         if (location != null){
             if (listDriver.size() > 0){
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                     listDriver.forEach((s, latLng) -> {
+                        navigation = new Navigation();
+
+                        navigation.setMap(mMap);
+                        navigation.setContext(getApplicationContext());
+                        navigation.setActivity(MainActivity.this);
+                        navigation.setListener(MainActivity.this);
+                        navigation.setKey(Constant.API_MAPS);
+
                         Log.d(TAG, "setTrack: "+s+" "+latLng.latitude+" "+latLng.longitude);
                         LatLng startLocation = new LatLng(
                                 location.getLatitude(),
                                 location.getLongitude()
                         );
                         LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
+
                         navigation.setStartLocation(startLocation);
                         navigation.setEndPosition(endLocation);
 
@@ -303,6 +319,14 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     });
                 }else{
                     for (Map.Entry<String, LatLng> entry : listDriver.entrySet()){
+                        navigation = new Navigation();
+
+                        navigation.setMap(mMap);
+                        navigation.setContext(getApplicationContext());
+                        navigation.setActivity(MainActivity.this);
+                        navigation.setListener(MainActivity.this);
+                        navigation.setKey(Constant.API_MAPS);
+
                         Log.d(TAG, "setTrack: 2 "+entry.getKey()+" "+entry.getValue().latitude+" "+entry.getValue().longitude);
                         LatLng startLocation = new LatLng(
                                 location.getLatitude(),
@@ -333,6 +357,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             locationManager.requestLocationUpdates(provider, 1000, 500, this);
         }
     }
+    private void clearOrder(){
+        String idUser = getPref(Constant.ID_USER, "0");
+        boolean isActive = false;
+        ActiveOrder activeOrder = new ActiveOrder(idUser, "", isActive);
+        getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document(idUser).set(activeOrder);
+    }
     private void listenOrder(){
         String idUser = getPref(Constant.ID_USER, "0");
 
@@ -351,13 +381,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         });
 
-    }
-    private void listenerPref(){
-//        getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
-//            if(key.equalsIgnoreCase(Constant.MY_LATITUDE) || key.equalsIgnoreCase(Constant.MY_LONGITUDE)){
-//                setTrack();
-//            }
-//        });
     }
     @Override
     public void onCompleteLoad(int i, int i1) {
@@ -407,5 +430,91 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
+    public void listPlatDriver(){
+        if (activeOrder){
+            HashMap<String, String> subListUser = new HashMap<>();
+            HashMap<String, HashMap<String, String>> listUser = new HashMap<>();
+            AtomicReference<String> idDriver = new AtomicReference<>("0");
+            AtomicReference<String> platNo = new AtomicReference<>("0");
+            AtomicInteger count = new AtomicInteger();
+            count.set(0);
+            BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
+            View sheetView = getLayoutInflater().inflate(R.layout.layout_masukangkot, null);
+            mBottomSheetDialog.setContentView(sheetView);
+            mBottomSheetDialog.show();
 
+            ChipGroup txtPlatNo = sheetView.findViewById(R.id.txtPlatNo);
+            txtPlatNo.removeAllViews();
+            AppCompatButton btnMasuk = sheetView.findViewById(R.id.btnMasuk);
+
+            CollectionReference crplatNo = getFirebase().getDb().collection(Constant.COLLECTION_ROOM);
+            ListenerRegistration listenerPLat = crplatNo.addSnapshotListener((queryDocumentSnapshots, e) -> {
+                txtPlatNo.removeAllViews();
+                for (DocumentSnapshot documentSnapshot: queryDocumentSnapshots.getDocuments()){
+                    if (documentSnapshot.get("jurusan").toString().equalsIgnoreCase(checkedJurusan)){
+                        subListUser.putAll((Map<String, String>) documentSnapshot.get("listUser"));
+                        listUser.put(String.valueOf(documentSnapshot.get("platNo")), subListUser);
+                        String fbTotalAngkutan = String.valueOf(documentSnapshot.get("count"));
+                        count.set(Integer.valueOf(fbTotalAngkutan));
+                        String fbPlatNo = String.valueOf(documentSnapshot.get("platNo"));
+                        Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
+                        layout_chip.setClickable(true);
+                        layout_chip.setCheckable(true);
+                        CharSequence charSequence =fbPlatNo+":"+fbTotalAngkutan;
+
+                        layout_chip.setTag(documentSnapshot.get("idDriver"));
+                        layout_chip.setChipText(charSequence);
+                        txtPlatNo.addView(layout_chip);
+                    }
+                }
+            });
+
+
+            txtPlatNo.setOnCheckedChangeListener((chipGroup, i) -> {
+                Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
+                if (chip != null){
+                    checkAngkot = chip.getText().toString();
+                    platNo.set(checkAngkot.split(":")[0]);
+                    idDriver.set(chip.getTag().toString());
+                }else{
+                    checkAngkot = null;
+                }
+            });
+            btnMasuk.setOnClickListener(view -> {
+                if (checkAngkot!=null){
+                    count.set(count.get()+1);
+                    subListUser.put("idUser"+count.get(), String.valueOf(getPref(Constant.ID_USER, "0")));
+                    listUser.put(platNo.get(), subListUser);
+
+                    Room room = new Room();
+                    room.setJurusan(checkedJurusan);
+                    room.setCount(count.get());
+                    room.setIdDriver(idDriver.get());
+                    room.setListUser(listUser.get(platNo.get()));
+                    room.setPlatNo(platNo.get());
+
+                    setPref(Constant.ACTIVE_ORDER_JURUSAN, checkedJurusan);
+                    setPref(Constant.ACTIVE_ORDER_COUNT, count.get());
+                    setPref(Constant.ACTIVE_ORDER_IDDRIVER, idDriver.get());
+                    setPref(Constant.ACTIVE_ORDER_PLATNO, platNo.get());
+                    setPref(Constant.STATE_ORDER, true);
+
+                    getFirebase().getDb().collection(Constant.COLLECTION_ROOM).document(platNo.get()).set(room);
+
+                    clearOrder();
+                    startActivity(new Intent(MainActivity.this, ActiveOrderActivity.class));
+                    finish();
+                }else{
+                    showSnackBar(mainLayout, new SpannableStringBuilder("Belum Memilih Angkot!"));
+                }
+            });
+            mBottomSheetDialog.setOnDismissListener(dialog -> listenerPLat.remove());
+        }
+    }
+    private void setToActivePage(){
+        if (getPref(Constant.STATE_ORDER, false)){
+            startActivity(new Intent(MainActivity.this, ActiveOrderActivity.class));
+            finish();
+        }
+    }
 }

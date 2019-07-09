@@ -75,14 +75,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mapFragment.getMapAsync(this);
         }
     }
-
     @Override
     protected void onStart() {
         super.onStart();
         startingApps();
         listenerPref();
     }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -139,11 +137,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
         location = locationManager.getLastKnownLocation(provider);
     }
-
     @Override
     public void onCompleteLoad(int i, int i1) {
     }
-
     private void centerMaps() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -166,7 +162,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
-
     private void setTrack() {
         navigation.clearMaps();
         mMap.clear();
@@ -225,7 +220,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             locationManager.requestLocationUpdates(provider, 10000, 5000, this);
         }
     }
-
     private void listenOrder() {
         CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_ORDER);
         Query query = user
@@ -239,12 +233,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 }
             }
         });
-
-
     }
-
     private void listenerUserOrder(String idUser, boolean isActive) {
-        Log.d(TAG, "listenerUserOrder: " + isActive);
         if (isActive) {
             CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER);
             Query query = user.whereEqualTo("id", idUser);
@@ -266,19 +256,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             setTrack();
         }
     }
-
     private void clearMaps() {
         navigation.clearMaps();
         mMap.clear();
     }
-
     private void startingApps() {
         if (getPref(Constant.DRIVER_ISACTIVE, false)) {
             createRoom();
             listenOrder();
         }
     }
-
     private void listenerPref() {
         getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
@@ -301,11 +288,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         });
 
     }
-
     private void createRoom() {
         Room room = new Room(
-                String.valueOf(getPref(Constant.ID_USER, "0")), String.valueOf(getPref(Constant.PLAT_NO, "0")),
-                "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null", "null");
+                String.valueOf(getPref(Constant.ID_USER, "0")), String.valueOf(getPref(Constant.ID_JURUSAN, "0")), String.valueOf(getPref(Constant.PLAT_NO, "0")), 0, new HashMap<>());
 
         getFirebase()
                 .getDb()
@@ -313,7 +298,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .set(room);
     }
-
     private void deleteRoom() {
         String idUser = String.valueOf(getPref(Constant.ID_USER, "0"));
         String platNo = String.valueOf(getPref(Constant.PLAT_NO, "0"));
@@ -323,7 +307,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .delete();
     }
-
     @Override
     public void onLocationChanged(Location location) {
         this.location = location;
@@ -337,7 +320,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
 
     }
-
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 

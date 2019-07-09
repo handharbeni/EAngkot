@@ -62,6 +62,13 @@ public class Constant {
     public static String MY_OLD_LATITUDE = "MY_OLD_LATITUDE";
     public static String MY_OLD_LONGITUDE = "MY_OLD_LONGITUDE";
 
+    public static String STATE_ORDER = "STATE_ORDER";
+
+    public static String ACTIVE_ORDER_JURUSAN = "ACTIVE_ORDER_JURUSAN";
+    public static String ACTIVE_ORDER_COUNT = "ACTIVE_ORDER_COUNT";
+    public static String ACTIVE_ORDER_IDDRIVER = "ACTIVE_ORDER_IDDRIVER";
+    public static String ACTIVE_ORDER_PLATNO = "ACTIVE_ORDER_PLATNO";
+
     public static void displayPromptForEnablingGPS(
             final Activity activity)
     {

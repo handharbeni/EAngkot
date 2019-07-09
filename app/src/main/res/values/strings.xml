@@ -17,4 +17,5 @@
     <string name="txt_alamat">ALAMAT</string>
     <string name="txt_hp">NOMOR HANDPHONE</string>
     <string name="txt_platnomor">PLAT NOMOR</string>
+    <string name="txt_dapat_angkot">DAPAT ANGKOT</string>
 </resources>
