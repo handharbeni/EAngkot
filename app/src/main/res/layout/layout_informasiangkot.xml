@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
+        android:layout_marginTop="25dp"
         android:padding="5dp"
         android:orientation="horizontal"
         android:weightSum="1"
@@ -48,7 +49,6 @@
     </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        android:clipToPadding="false"
         android:id="@+id/rvTravelHistory"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

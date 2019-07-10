@@ -2,7 +2,6 @@ package com.mhandharbeni.e_angkot.second_activity.driver;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
@@ -29,11 +28,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QuerySnapshot;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -66,6 +62,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     @BindView(R.id.mainLayout)
     CoordinatorLayout mainLayout;
 
+    @BindView(R.id.txtPlatNo)
+    TextView txtPlatNo;
+
+    @BindView(R.id.txtJurusan)
+    TextView txtJurusan;
+
     HashMap<String, LatLng> listUser = new HashMap<>();
     HashMap<String, ListenerRegistration> listSnapshot = new HashMap<>();
 
@@ -95,6 +97,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         super.onStart();
         startingApps();
         listenerPref();
+        fillInformation();
     }
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -432,23 +435,28 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         showLog(getPref(Constant.ID_USER, "0"));
 
         CollectionReference collectionHistory = getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY);
-        ListenerRegistration listenerTravel = collectionHistory.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
-            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
-                showLog(String.valueOf(documentSnapshot.get("idDriver")));
+
+        collectionHistory.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).get().addOnCompleteListener(task -> {
+            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()){
                 TravelHistory travelHistory = new TravelHistory();
                 travelHistory.setIdUser(String.valueOf(documentSnapshot.get("idUser")));
                 travelHistory.setDateMillis((long) documentSnapshot.get("dateMillis"));
                 travelHistory.setIdDriver(String.valueOf(documentSnapshot.get("idDriver")));
                 travelHistory.setPlatNo(String.valueOf(documentSnapshot.get("platNo")));
-                listTravelHistory.add(travelHistory);
+                travelHistory.setEndDestination(String.valueOf(documentSnapshot.get("endDestination")));
+                travelHistory.setNamaUser(String.valueOf(documentSnapshot.get("namaUser")));
+                travelHistoryAdapter.addListHistory(travelHistory);
             }
-            travelHistoryAdapter.addListHistory(listTravelHistory);
         });
 
         mBottomSheetDialog.setOnDismissListener(dialog -> {
             listenerAngkot.remove();
             listenerDriver.remove();
-            listenerTravel.remove();
+//            listenerTravel.remove();
         });
+    }
+    private void fillInformation(){
+        txtPlatNo.setText(getPref(Constant.PLAT_NO, "0"));
+        txtJurusan.setText(getPref(Constant.ID_JURUSAN, "0"));
     }
 }

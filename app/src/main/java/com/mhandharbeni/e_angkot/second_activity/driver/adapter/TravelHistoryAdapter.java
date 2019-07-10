@@ -35,7 +35,7 @@ public class TravelHistoryAdapter extends RecyclerView.Adapter<TravelHistoryAdap
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.txtUser.setText(listTravelHistory.get(position).getIdUser());
+        holder.txtUser.setText(listTravelHistory.get(position).getNamaUser());
         holder.txtEndDestination.setText(listTravelHistory.get(position).getEndDestination());
     }
 
@@ -45,8 +45,7 @@ public class TravelHistoryAdapter extends RecyclerView.Adapter<TravelHistoryAdap
     }
 
     public void addListHistory(List<TravelHistory> listTravelHistory){
-        Log.d(TAG, "addListHistory: ");
-        this.listTravelHistory.clear();
+//        this.listTravelHistory.clear();
         this.listTravelHistory.addAll(listTravelHistory);
         notifyDataSetChanged();
     }

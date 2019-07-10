@@ -7,19 +7,22 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <LinearLayout android:orientation="horizontal" android:layout_width="match_parent"
         android:gravity="center_vertical|start"
-        android:padding="20dp"
+        android:padding="20dp" android:weightSum="1"
         android:layout_height="wrap_content" >
         <TextView
+            android:layout_weight="0.3"
             android:layout_marginRight="10dp"
             android:id="@+id/txtUser"
             android:text="USER"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <androidx.appcompat.widget.AppCompatImageView
+            android:layout_weight="0.2"
             app:srcCompat="@drawable/ic_chevron_right"
-            android:layout_width="40dp"
-            android:layout_height="40dp" />
+            android:layout_width="80dp"
+            android:layout_height="80dp" />
         <TextView
+            android:layout_weight="0.5"
             android:layout_marginLeft="10dp"
             android:id="@+id/txtEndDestination"
             android:maxLines="5"

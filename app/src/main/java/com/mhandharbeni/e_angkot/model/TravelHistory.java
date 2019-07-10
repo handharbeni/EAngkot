@@ -4,6 +4,7 @@ public class TravelHistory {
     String idUser;
     String idDriver;
     String platNo;
+    String namaUser;
     String endDestination;
     long dateMillis;
 
@@ -48,5 +49,13 @@ public class TravelHistory {
 
     public void setDateMillis(long dateMillis) {
         this.dateMillis = dateMillis;
+    }
+
+    public String getNamaUser() {
+        return namaUser;
+    }
+
+    public void setNamaUser(String namaUser) {
+        this.namaUser = namaUser;
     }
 }

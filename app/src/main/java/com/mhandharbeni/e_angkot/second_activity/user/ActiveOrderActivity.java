@@ -30,6 +30,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.RatingAngkot;
 import com.mhandharbeni.e_angkot.model.RatingDriver;
@@ -205,6 +206,7 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
             travelHistory.setIdDriver(idDriver);
             travelHistory.setPlatNo(platNo);
             travelHistory.setDateMillis(System.currentTimeMillis());
+            travelHistory.setNamaUser(getPref(Constant.NAMA_USER, "0"));
 
             getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY).document().set(travelHistory);
 //            String city = addresses.get(0).getLocality();
