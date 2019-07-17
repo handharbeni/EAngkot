@@ -97,7 +97,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/btnDaftar"
-                android:text="@string/txt_masuk"
+                android:text="@string/txt_daftar"
                 app:cornerRadius="16dp"/>
 
         </LinearLayout>

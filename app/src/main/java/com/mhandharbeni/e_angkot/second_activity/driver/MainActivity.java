@@ -9,7 +9,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -173,6 +172,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
     }
     private void setTrack() {
+        if (navigation != null){
+            navigation.clearMaps();
+        }
         mMap.clear();
         if (location != null) {
             if (getPref(Constant.DRIVER_ISACTIVE, false)) {
@@ -253,7 +255,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_ORDER);
         Query query = user
                 .whereEqualTo("jurusan", getPref().getString(Constant.ID_JURUSAN, "0"));
-        Log.d(TAG, "listenOrder: " + getPref().getString(Constant.ID_JURUSAN, "0"));
 
         trackOrder = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
             if (queryDocumentSnapshots.getDocuments().size() > 0) {
@@ -300,7 +301,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     private void listenerPref() {
         getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
-                Log.d(TAG, "listenerPref: " + key + " " + getPref(Constant.DRIVER_ISACTIVE, false));
                 if (getPref(Constant.DRIVER_ISACTIVE, false)) {
                     createRoom();
                     listenOrder();

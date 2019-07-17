@@ -3,7 +3,6 @@ package com.mhandharbeni.e_angkot.main_activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -26,7 +25,6 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.model.LocationDriver;
@@ -90,6 +88,19 @@ public class LoginActivity extends BaseActivity {
         hideActionBar();
     }
 
+    private void fillInput(){
+        if (Constant.CURRENT_USERNAME != null && Constant.CURRENT_PASSWORD != null){
+            txtEmail.setText(Constant.CURRENT_USERNAME);
+            txtPassword.setText(Constant.CURRENT_PASSWORD);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fillInput();
+    }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -97,6 +108,7 @@ public class LoginActivity extends BaseActivity {
         initAnimation();
         initMode();
         syncJurusan();
+        fillInput();
     }
 
     private void initMode() {
@@ -114,7 +126,7 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void initAnimation() {
-        rotate = new RotateAnimation(0, 180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        rotate = new RotateAnimation(0, 360, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotate.setDuration(2000);
         rotate.setRepeatCount(Animation.INFINITE);
         rotate.setInterpolator(new LinearInterpolator());
@@ -144,7 +156,6 @@ public class LoginActivity extends BaseActivity {
 
     @OnClick(R.id.btnMasuk)
     public void clickMasuk() {
-        Log.d(TAG, "clickMasuk: "+checkedJurusan);
         if (validateLogin()){
             btnMasuk.setEnabled(false);
             startRotate();
@@ -233,7 +244,6 @@ public class LoginActivity extends BaseActivity {
     }
 
     private void checkFirebaseAccountDriver() {
-        Log.d(TAG, "checkFirebaseAccountDriver: "+checkedJurusan);
         String jurusan = checkedJurusan;
 
         String email = txtEmail.getText().toString();

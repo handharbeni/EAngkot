@@ -10,7 +10,6 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.Nullable;
@@ -284,8 +283,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
     }
     private void setTrack(){
+        if (navigation != null){
+            navigation.clearMaps();
+        }
         mMap.clear();
-        Log.d(TAG, "sendNotificationToDriver: "+location);
         if (location != null){
             if (listDriver.size() > 0){
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
@@ -298,7 +299,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                         navigation.setListener(MainActivity.this);
                         navigation.setKey(Constant.API_MAPS);
 
-                        Log.d(TAG, "setTrack: "+s+" "+latLng.latitude+" "+latLng.longitude);
                         LatLng startLocation = new LatLng(
                                 location.getLatitude(),
                                 location.getLongitude()
@@ -326,7 +326,6 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                         navigation.setListener(MainActivity.this);
                         navigation.setKey(Constant.API_MAPS);
 
-                        Log.d(TAG, "setTrack: 2 "+entry.getKey()+" "+entry.getValue().latitude+" "+entry.getValue().longitude);
                         LatLng startLocation = new LatLng(
                                 location.getLatitude(),
                                 location.getLongitude()

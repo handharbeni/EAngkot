@@ -13,7 +13,6 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -77,22 +76,18 @@ public class LocationServices extends Service {
                     CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(locationDriver);
                 }
             }
-            Log.i(TAG, "LocationChanged: " + location);
         }
 
         @Override
         public void onProviderDisabled(String provider) {
-            Log.e(TAG, "onProviderDisabled: " + provider);
         }
 
         @Override
         public void onProviderEnabled(String provider) {
-            Log.e(TAG, "onProviderEnabled: " + provider);
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-            Log.e(TAG, "onStatusChanged: " + status);
         }
     }
 
@@ -100,18 +95,18 @@ public class LocationServices extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-
         Notification notification = new Notification(R.drawable.ic_angkot, Constant.CHANNEL_TITLE,
                 System.currentTimeMillis());
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-        startForeground(Constant.APP_ID, notification);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForeground(Constant.APP_ID, getNotification());
+        }
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
-        Log.i(TAG, "onCreate");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForeground(Constant.APP_ID, getNotification());
         }
@@ -125,7 +120,6 @@ public class LocationServices extends Service {
             try {
                 mLocationManager.removeUpdates(mLocationListener);
             } catch (Exception ex) {
-                Log.i(TAG, "fail to remove location listners, ignore", ex);
             }
         }
     }

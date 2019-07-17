@@ -2,12 +2,16 @@ package com.mhandharbeni.e_angkot.utils;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
+import android.net.ConnectivityManager;
 import android.provider.Settings;
 
 import androidx.appcompat.app.AlertDialog;
+
+import java.net.InetAddress;
 
 public class Constant {
     public enum TypeUser{
@@ -72,6 +76,9 @@ public class Constant {
     public static String ACTIVE_ORDER_IDDRIVER = "ACTIVE_ORDER_IDDRIVER";
     public static String ACTIVE_ORDER_PLATNO = "ACTIVE_ORDER_PLATNO";
 
+    public static String CURRENT_USERNAME = "";
+    public static String CURRENT_PASSWORD = "";
+
     public static void displayPromptForEnablingGPS(
             final Activity activity)
     {
@@ -91,5 +98,27 @@ public class Constant {
                 .setNegativeButton("Cancel",
                         (d, id) -> d.cancel());
         builder.create().show();
+    }
+
+    public static void displayNoInternet(Activity activity){
+        final AlertDialog.Builder builder =
+                new AlertDialog.Builder(activity);
+        builder.setCancelable(false);
+        final String action = Settings.ACTION_LOCATION_SOURCE_SETTINGS;
+        final String message = "Kami Melihat Anda Offline, Keluar";
+
+        builder.setMessage(message)
+                .setPositiveButton("OK",
+                        (d, id) -> {
+                            d.dismiss();
+                            activity.finish();
+                        });
+        builder.create().show();
+    }
+
+    public static boolean isInternetAvailable(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        return cm.getActiveNetworkInfo() != null;
     }
 }

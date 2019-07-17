@@ -7,7 +7,6 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Profile;
@@ -36,6 +35,9 @@ public class ProfileActivity extends BaseActivity {
     @BindView(R.id.btnUpdate)
     Button btnUpdate;
 
+    @BindView(R.id.txtLabelUser)
+    TextView txtLabelUser;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,7 +45,6 @@ public class ProfileActivity extends BaseActivity {
         setContentView(R.layout.activity_profile);
 
         ButterKnife.bind(this);
-
         hideActionBar();
     }
 
@@ -54,6 +55,7 @@ public class ProfileActivity extends BaseActivity {
     }
 
     public void initDataAccount(){
+        txtLabelUser.setText(String.valueOf(getPref(Constant.MODE, "USER")).toUpperCase());
         getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
             if (documentSnapshot.exists()){
                 profileName.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());

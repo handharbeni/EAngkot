@@ -85,6 +85,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        checkConnection();
         initActionBar();
     }
 
@@ -104,6 +105,12 @@ public class BaseActivity extends AppCompatActivity {
         getSupportActionBar().setCustomView(R.layout.actionbar_angkot);
     }
 
+    private void checkConnection(){
+        if (!Constant.isInternetAvailable(getApplicationContext())){
+            Constant.displayNoInternet(BaseActivity.this);
+        }
+    }
+
     @OnClick(R.id.idProfile)
     public void onProfileClick(){
 //        startActivity(new Intent(this, ProfileActivity.class));
@@ -112,12 +119,15 @@ public class BaseActivity extends AppCompatActivity {
         mBottomSheetDialog.setContentView(sheetView);
         mBottomSheetDialog.show();
 
+        TextView txtLabelUser = sheetView.findViewById(R.id.txtLabelUser);
         TextView profileName = sheetView.findViewById(R.id.profile_name);
         TextInputEditText txtNama = sheetView.findViewById(R.id.txtNama);
         TextInputEditText txtAlamat = sheetView.findViewById(R.id.txtAlamat);
         TextInputEditText txtNomorHape = sheetView.findViewById(R.id.txtNomorHape);
         Button btnUpdate = sheetView.findViewById(R.id.btnUpdate);
         Button btnKeluar = sheetView.findViewById(R.id.btnLogout);
+
+        txtLabelUser.setText(String.valueOf(getPref(Constant.MODE, "USER")).toUpperCase());
 
         getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
             if (documentSnapshot.exists()){
@@ -241,7 +251,7 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void writeToast(Context context, String message, int duration) {
-        Toast.makeText(context, message, duration).show();
+//        Toast.makeText(context, message, duration).show();
     }
 
     public void showSnackBar(View coordinatorLayout, SpannableStringBuilder snackbarText) {

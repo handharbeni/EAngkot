@@ -79,7 +79,7 @@ public class RegisterActivity extends BaseActivity {
     }
 
     private void initAnimation() {
-        rotate = new RotateAnimation(0, 180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
+        rotate = new RotateAnimation(0, 360, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
         rotate.setDuration(2000);
         rotate.setRepeatCount(Animation.INFINITE);
         rotate.setInterpolator(new LinearInterpolator());
@@ -184,6 +184,10 @@ public class RegisterActivity extends BaseActivity {
                     )
                     .document(id)
                     .set(user);
+            Constant.CURRENT_USERNAME = email;
+            Constant.CURRENT_PASSWORD = password;
+
+            finish();
         } else {
             txtPasswordRepeat.setError("Password Tidak Sama");
         }
