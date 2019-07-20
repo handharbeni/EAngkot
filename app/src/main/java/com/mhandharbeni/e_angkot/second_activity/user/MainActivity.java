@@ -48,6 +48,7 @@ import com.mhandharbeni.e_angkot.utils.Constant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -369,12 +370,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         query.addSnapshotListener((queryDocumentSnapshots, e) -> {
             if (queryDocumentSnapshots.getDocuments().size()>0){
-                if ((boolean)queryDocumentSnapshots.getDocuments().get(0).get("isActive")){
-                    fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_close));
-                    activeOrder = true;
-                }else{
-                    fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
-                    activeOrder = false;
+                if (queryDocumentSnapshots.getDocuments().size() > 0){
+                    if (queryDocumentSnapshots.getDocuments().get(0).get("isActive") != null){
+                        if ((boolean)queryDocumentSnapshots.getDocuments().get(0).get("isActive")){
+                            fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_close));
+                            activeOrder = true;
+                        }else{
+                            fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+                            activeOrder = false;
+                        }
+                    }
                 }
             }
         });
@@ -449,9 +454,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             CollectionReference crplatNo = getFirebase().getDb().collection(Constant.COLLECTION_ROOM);
             ListenerRegistration listenerPLat = crplatNo.addSnapshotListener((queryDocumentSnapshots, e) -> {
                 txtPlatNo.removeAllViews();
-                for (DocumentSnapshot documentSnapshot: queryDocumentSnapshots.getDocuments()){
-                    if (documentSnapshot.get("jurusan").toString().equalsIgnoreCase(checkedJurusan)){
-                        subListUser.putAll((Map<String, String>) documentSnapshot.get("listUser"));
+                for (DocumentSnapshot documentSnapshot: Objects.requireNonNull(queryDocumentSnapshots).getDocuments()){
+                    if (Objects.requireNonNull(documentSnapshot.get("jurusan")).toString().equalsIgnoreCase(checkedJurusan)){
+                        subListUser.putAll((Map<String, String>) Objects.requireNonNull(documentSnapshot.get("listUser")));
                         listUser.put(String.valueOf(documentSnapshot.get("platNo")), subListUser);
                         String fbTotalAngkutan = String.valueOf(documentSnapshot.get("count"));
                         count.set(Integer.valueOf(fbTotalAngkutan));

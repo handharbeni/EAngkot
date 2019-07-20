@@ -365,12 +365,16 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     }
     @Override
     protected void onStop() {
-        locationManager.removeUpdates(this);
+        try {
+            locationManager.removeUpdates(this);
+        }catch (Exception ignored){}
         super.onStop();
     }
     @Override
     protected void onDestroy() {
-        locationManager.removeUpdates(this);
+        try {
+            locationManager.removeUpdates(this);
+        }catch (Exception ignored){}
         super.onDestroy();
     }
     @Override
