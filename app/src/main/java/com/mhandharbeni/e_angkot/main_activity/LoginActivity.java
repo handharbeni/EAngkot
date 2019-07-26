@@ -26,6 +26,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
@@ -86,6 +87,7 @@ public class LoginActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         hideActionBar();
+        insertJurusan();
     }
 
     private void fillInput(){
@@ -220,6 +222,7 @@ public class LoginActivity extends BaseActivity {
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0) {
                 showToast(getApplicationContext(), "Sukses Login");
+                logUser(txtPassword.getText().toString(), txtEmail.getText().toString());
                 for (DocumentSnapshot documentSnapshot : task.getResult()) {
                     showToast(getApplicationContext(), documentSnapshot.getId());
 
@@ -248,7 +251,7 @@ public class LoginActivity extends BaseActivity {
 
         String email = txtEmail.getText().toString();
         String password = txtPassword.getText().toString();
-        String platNo = txtPlatNo.getText().toString();
+        String platNo = txtPlatNo.getText().toString().replaceAll("\\s+","").toUpperCase();
 
 
         CollectionReference driver = getFirebase().getDb().collection(Constant.COLLECTION_DRIVER);
@@ -257,7 +260,11 @@ public class LoginActivity extends BaseActivity {
         querySnapshotTask.addOnCompleteListener(task -> {
             if (task.getResult().size() > 0) {
                 showToast(getApplicationContext(), "Sukses Login");
+                logUser(platNo, email);
                 for (DocumentSnapshot documentSnapshot : task.getResult()) {
+
+
+
                     showToast(getApplicationContext(), documentSnapshot.getId());
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
@@ -310,5 +317,42 @@ public class LoginActivity extends BaseActivity {
         }
 
         return true;
+    }
+
+    private void insertJurusan(){
+        String[] aJurusan = new String[]{
+                "AMG",
+                "ABG",
+                "GA",
+                "AG",
+                "TST",
+                "CKL",
+                "ADL",
+                "AL",
+                "AT",
+                "AJG",
+                "ASD",
+                "LDG",
+                "LG",
+                "GML",
+                "GL",
+                "GM",
+                "TSG",
+                "MK",
+                "MM",
+                "PBB",
+                "TAT",
+                "JPK",
+                "JDM",
+                "MKS",
+                "MT"
+        };
+
+        for (String jurusan : aJurusan){
+            Jurusan mJurusan = new Jurusan();
+            mJurusan.setId(jurusan);
+
+            getFirebase().getDb().collection(Constant.COLLECTION_JURUSAN).document(jurusan).set(mJurusan);
+        }
     }
 }

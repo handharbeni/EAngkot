@@ -10,6 +10,7 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
+import io.fabric.sdk.android.Fabric;
 
 public class CoreApplication extends Application {
 
@@ -19,6 +20,7 @@ public class CoreApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        Fabric.with(this, new Crashlytics());
         FirebaseAnalytics.getInstance(this);
         FirebaseMessaging.getInstance().setAutoInitEnabled(true);
         Stetho.initializeWithDefaults(this);

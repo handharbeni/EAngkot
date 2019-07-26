@@ -28,6 +28,7 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
+import com.crashlytics.android.Crashlytics;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -438,5 +439,10 @@ public class BaseActivity extends AppCompatActivity {
         public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.e(TAG, "BaseActivity onStatusChanged: " + status);
         }
+    }
+    public void logUser(String nama, String email) {
+        Crashlytics.setUserIdentifier(nama);
+        Crashlytics.setUserEmail(email);
+        Crashlytics.setUserName(nama);
     }
 }

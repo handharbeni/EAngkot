@@ -16,7 +16,9 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <meta-data android:name="com.google.android.geo.API_KEY" android:value="@string/api_key"/>
-        <meta-data android:name="io.fabric.ApiKey" android:value="79ade8cc8ee6cbe3516d0d54485dc9983f287c27" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="921b59c4b9b819dfe6900383cc37123faf587932" />
         <activity
             android:name=".SplashScreen">
             <intent-filter>
@@ -39,4 +41,5 @@
             </intent-filter>
         </service>
     </application>
+    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

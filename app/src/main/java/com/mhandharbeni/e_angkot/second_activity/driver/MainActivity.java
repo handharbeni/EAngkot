@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
+import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -46,13 +47,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
+public class MainActivity extends BaseActivity implements
+        OnMapReadyCallback,
+        Navigation.NavigationListener,
+        LocationListener,
+        GpsStatus.Listener {
     private GoogleMap mMap;
 
     @BindView(R.id.fab)
@@ -64,20 +70,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     @BindView(R.id.txtPlatNo)
     TextView txtPlatNo;
 
+    @BindView(R.id.txtPenumpang)
+    TextView txtPenumpang;
+
     @BindView(R.id.txtJurusan)
     TextView txtJurusan;
+
+    @BindView(R.id.txtGps)
+    TextView txtGps;
 
     HashMap<String, LatLng> listUser = new HashMap<>();
     HashMap<String, ListenerRegistration> listSnapshot = new HashMap<>();
 
     public ListenerRegistration trackOrder;
-    public Navigation navigation;
+    //    public Navigation navigation;
     HashMap<String, Navigation> listNavigation = new HashMap<>();
 
+
     LocationManager locationManager;
+    GpsStatus mStatus;
     Location location;
     Criteria criteria;
     String provider;
+    boolean gpsReady;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -91,6 +106,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mapFragment.getMapAsync(this);
         }
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -98,6 +114,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         listenerPref();
         fillInformation();
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -124,6 +141,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         centerMaps();
 
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationManager.addGpsStatusListener(this);
+
         criteria = new Criteria();
         criteria.setAccuracy(Criteria.ACCURACY_FINE);
         criteria.setPowerRequirement(Criteria.POWER_HIGH);
@@ -146,9 +165,11 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
         location = locationManager.getLastKnownLocation(provider);
     }
+
     @Override
     public void onCompleteLoad(int i, int i1) {
     }
+
     private void centerMaps() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Criteria criteria = new Criteria();
@@ -171,9 +192,12 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
         }
     }
+
     private void setTrack() {
-        if (navigation != null){
-            navigation.clearMaps();
+        if (listNavigation.size() > 0) {
+            for (Map.Entry<String, Navigation> listNav : listNavigation.entrySet()) {
+                listNav.getValue().clearMaps();
+            }
         }
         mMap.clear();
         if (location != null) {
@@ -181,7 +205,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     if (listUser.size() > 0) {
                         listUser.forEach((s, latLng) -> {
-                            navigation = new Navigation();
+                            Navigation navigation = new Navigation();
 
                             navigation.setMap(mMap);
                             navigation.setContext(getApplicationContext());
@@ -212,7 +236,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     if (listUser.size() > 0) {
                         for (Map.Entry<String, LatLng> entry : listUser.entrySet()) {
 
-                            navigation = new Navigation();
+                            Navigation navigation = new Navigation();
 
                             navigation.setMap(mMap);
                             navigation.setContext(getApplicationContext());
@@ -251,6 +275,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             locationManager.requestLocationUpdates(provider, 10000, 5000, this);
         }
     }
+
     private void listenOrder() {
         CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_ORDER);
         Query query = user
@@ -264,6 +289,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             }
         });
     }
+
     private void listenerUserOrder(String idUser, boolean isActive) {
         if (isActive) {
             CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER);
@@ -286,18 +312,21 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             setTrack();
         }
     }
+
     private void clearMaps() {
-        for (Map.Entry<String, Navigation> entry:listNavigation.entrySet()){
+        for (Map.Entry<String, Navigation> entry : listNavigation.entrySet()) {
             entry.getValue().clearMaps();
         }
         mMap.clear();
     }
+
     private void startingApps() {
         if (getPref(Constant.DRIVER_ISACTIVE, false)) {
             createRoom();
             listenOrder();
         }
     }
+
     private void listenerPref() {
         getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
@@ -319,6 +348,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         });
 
     }
+
     private void createRoom() {
         Room room = new Room(
                 String.valueOf(getPref(Constant.ID_USER, "0")), String.valueOf(getPref(Constant.ID_JURUSAN, "0")), String.valueOf(getPref(Constant.PLAT_NO, "0")), 0, new HashMap<>());
@@ -329,6 +359,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .set(room);
     }
+
     private void deleteRoom() {
         String idUser = String.valueOf(getPref(Constant.ID_USER, "0"));
         String platNo = String.valueOf(getPref(Constant.PLAT_NO, "0"));
@@ -338,8 +369,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .delete();
     }
+
     @Override
     public void onLocationChanged(Location location) {
+        if (location != null) {
+            gpsReady = true;
+            txtGps.setText("Siap");
+        }
         this.location = location;
         if (
                 !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLatitude())) &&
@@ -351,32 +387,40 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
 
     }
+
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
     }
+
     @Override
     public void onProviderEnabled(String provider) {
 
     }
+
     @Override
     public void onProviderDisabled(String provider) {
 
     }
+
     @Override
     protected void onStop() {
         try {
             locationManager.removeUpdates(this);
-        }catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
         super.onStop();
     }
+
     @Override
     protected void onDestroy() {
         try {
             locationManager.removeUpdates(this);
-        }catch (Exception ignored){}
+        } catch (Exception ignored) {
+        }
         super.onDestroy();
     }
+
     @Override
     protected void onRestart() {
         super.onRestart();
@@ -387,8 +431,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         }
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
+
     @OnClick(R.id.fab)
-    public void onInfoClick(){
+    public void onInfoClick() {
         RecyclerView rvTravelHistory;
         TextView txtRatingAngkot, txtRatingDriver;
 
@@ -409,7 +454,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         ListenerRegistration listenerAngkot = collectionRatingAngkot.whereEqualTo("platNo", String.valueOf(getPref(Constant.PLAT_NO, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
             double total = 0;
             int totalData = 0;
-            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                 total += (double) documentSnapshot.get("rate");
                 totalData++;
             }
@@ -422,7 +467,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         ListenerRegistration listenerDriver = collectionRatingDriver.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).addSnapshotListener((queryDocumentSnapshots, e) -> {
             double total = 0;
             int totalData = 0;
-            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots){
+            for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                 total += (double) documentSnapshot.get("rate");
                 totalData++;
             }
@@ -441,7 +486,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         CollectionReference collectionHistory = getFirebase().getDb().collection(Constant.COLLECTION_TRAVEL_HISTORY);
 
         collectionHistory.whereEqualTo("idDriver", String.valueOf(getPref(Constant.ID_USER, "0"))).get().addOnCompleteListener(task -> {
-            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()){
+            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                 TravelHistory travelHistory = new TravelHistory();
                 travelHistory.setIdUser(String.valueOf(documentSnapshot.get("idUser")));
                 travelHistory.setDateMillis((long) documentSnapshot.get("dateMillis"));
@@ -459,8 +504,50 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 //            listenerTravel.remove();
         });
     }
-    private void fillInformation(){
+
+    private void fillInformation() {
         txtPlatNo.setText(getPref(Constant.PLAT_NO, "0"));
         txtJurusan.setText(getPref(Constant.ID_JURUSAN, "0"));
+        getFirebase().getDb().collection(Constant.COLLECTION_ROOM)
+                .whereEqualTo("platNo", getPref(Constant.PLAT_NO, "0"))
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (queryDocumentSnapshots.size() > 0) {
+                        List<DocumentSnapshot> listDocumentSnapshot = queryDocumentSnapshots.getDocuments();
+                        DocumentSnapshot documentSnapshot = listDocumentSnapshot.get(0);
+                        HashMap<String, String> listPenumpang = new HashMap<>((Map<String, String>) Objects.requireNonNull(documentSnapshot.get("listUser")));
+                        txtPenumpang.setText(String.valueOf(listPenumpang.size()));
+                    }
+                });
+    }
+
+    @Override
+    public void onGpsStatusChanged(int event) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+        }
+        mStatus = locationManager.getGpsStatus(mStatus);
+        switch (event) {
+            case GpsStatus.GPS_EVENT_STARTED:
+                // Do Something with mStatus info
+                txtGps.setText("Mulai");
+                break;
+
+            case GpsStatus.GPS_EVENT_STOPPED:
+                // Do Something with mStatus info
+                txtGps.setText("Berhenti");
+                break;
+
+            case GpsStatus.GPS_EVENT_FIRST_FIX:
+                // Do Something with mStatus info
+                txtGps.setText("Tidak Ada Update Lokasi");
+                break;
+
+            case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
+                // Do Something with mStatus info
+                txtGps.setText("Siap");
+                break;
+        }
     }
 }

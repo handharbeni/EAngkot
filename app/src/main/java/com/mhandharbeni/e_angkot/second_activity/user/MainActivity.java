@@ -10,8 +10,10 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
+import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
@@ -22,6 +24,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -57,7 +60,7 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 import illiyin.mhandharbeni.libraryroute.Navigation;
 
-public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener {
+public class MainActivity extends BaseActivity implements OnMapReadyCallback, Navigation.NavigationListener, LocationListener, GoogleMap.OnMyLocationChangeListener {
     private GoogleMap mMap;
 
     @BindView(R.id.fabOrder)
@@ -69,6 +72,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     BottomAppBar bottomAppBar;
 
     HashMap<String, LatLng> listDriver = new HashMap<>();
+    HashMap<String, Navigation> listNavigation = new HashMap<>();
 
 
     String checkedJurusan = null;
@@ -79,7 +83,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public ListenerRegistration trackDriver;
     public ListenerRegistration trackRoom;
 
-    public Navigation navigation;
+//    public Navigation navigation;
 
     LocationManager locationManager;
     Location location;
@@ -94,7 +98,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         setContentView(R.layout.mainactivity_user);
         bottomAppBar = findViewById(R.id.bottomAppBar);
         bottomAppBar.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()){
+            switch (item.getItemId()) {
                 case R.id.queue:
                     listPlatDriver();
                     break;
@@ -110,6 +114,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         setToActivePage();
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -121,9 +126,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                         return;
                     }
                     mMap.setMyLocationEnabled(true);
+                    mMap.setOnMyLocationChangeListener(MainActivity.this);
+//                    mMap.my
 
-
-                    centerMaps();
 
                     locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
                     criteria = new Criteria();
@@ -141,6 +146,8 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     criteria.setSpeedAccuracy(Criteria.ACCURACY_MEDIUM);
                     provider = locationManager.getBestProvider(criteria, true);
                     locationManager.requestLocationUpdates(provider, 1000, 500, MainActivity.this);
+
+                    centerMaps();
                 }
 
                 @Override
@@ -151,18 +158,29 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
         }
     }
+
     private void centerMaps() {
-        if (location != null){
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 13));
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+            }
+            mMap.setMyLocationEnabled(true);
+            Location myLocation = location;
+            if (myLocation == null){
+                myLocation = mMap.getMyLocation();
+            }
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                    .target(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))      // Sets the center of the map to location user
                     .zoom(17)                   // Sets the zoom
                     .bearing(90)                // Sets the orientation of the camera to east
                     .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                     .build();                   // Creates a CameraPosition from the builder
             mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-        }
+        }catch (Exception ignored){}
     }
     @Override
     protected void onStart() {
@@ -174,6 +192,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public void clickOrder(){
         String idUser = getPref(Constant.ID_USER, "0");
         if (activeOrder){
+            activeOrder = false;
             String idJurusan = checkedJurusan;
             boolean isActive = false;
             ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
@@ -192,9 +211,10 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 }
             });
             checkedJurusan = null;
-            navigation.clearMaps();
+            clearOrder();
             centerMaps();
         }else{
+            activeOrder = true;
             BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
             View sheetView = getLayoutInflater().inflate(R.layout.layout_pilihjurusan, null);
             mBottomSheetDialog.setContentView(sheetView);
@@ -235,7 +255,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     return;
                 }
                 String idJurusan = checkedJurusan;
-                boolean isActive = !activeOrder;
+                boolean isActive = activeOrder;
                 ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
 
                 idDocument = CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document().getId();
@@ -268,80 +288,104 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             Query query = user.whereEqualTo("jurusan", jurusan);
 
             trackDriver = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
-                if (queryDocumentSnapshots.getDocuments().size()>0){
-                    for (DocumentSnapshot documentSnapshot:queryDocumentSnapshots.getDocuments()){
-                        LatLng latLngDriver = new LatLng(
-                                Double.valueOf(documentSnapshot.get("latitude").toString()),
-                                Double.valueOf(documentSnapshot.get("longitude").toString())
-                        );
-                        listDriver.put(documentSnapshot.get("platNo").toString(), latLngDriver);
+                if (activeOrder){
+                    if (queryDocumentSnapshots.getDocuments().size()>0){
+                        listDriver.clear();
+                        for (DocumentSnapshot documentSnapshot:queryDocumentSnapshots.getDocuments()){
+                            if (documentSnapshot.get("isActive") != null){
+                                if ((boolean)documentSnapshot.get("isActive")){
+                                    LatLng latLngDriver = new LatLng(
+                                            Double.valueOf(documentSnapshot.get("latitude").toString()),
+                                            Double.valueOf(documentSnapshot.get("longitude").toString())
+                                    );
+                                    listDriver.put(documentSnapshot.get("platNo").toString(), latLngDriver);
+                                }
+                            }
 
 //                        sendMessage(documentSnapshot.get("token").toString(), getPref(Constant.NAMA_USER, "Jhon Doe")+" Sedang Mencari "+jurusan, "");
+                        }
+                        setTrack();
                     }
-                    setTrack();
+                }else{
+                    showToast(getApplicationContext(), "Active Order False");
                 }
             });
         }
     }
     private void setTrack(){
-        if (navigation != null){
-            navigation.clearMaps();
+        Log.d(TAG, "setTrack: RUNNING");
+        Log.d(TAG, "setTrack: RUNNING "+listDriver.size());
+        if (listNavigation.size() > 0){
+            for (Map.Entry<String, Navigation> listNav : listNavigation.entrySet()){
+                listNav.getValue().clearMaps();
+            }
         }
         mMap.clear();
         if (location != null){
             if (listDriver.size() > 0){
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
                     listDriver.forEach((s, latLng) -> {
-                        navigation = new Navigation();
+                        if (activeOrder){
 
-                        navigation.setMap(mMap);
-                        navigation.setContext(getApplicationContext());
-                        navigation.setActivity(MainActivity.this);
-                        navigation.setListener(MainActivity.this);
-                        navigation.setKey(Constant.API_MAPS);
+                            Navigation navigation = new Navigation();
 
-                        LatLng startLocation = new LatLng(
-                                location.getLatitude(),
-                                location.getLongitude()
-                        );
-                        LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
+                            navigation.setMap(mMap);
+                            navigation.setContext(getApplicationContext());
+                            navigation.setActivity(MainActivity.this);
+                            navigation.setListener(MainActivity.this);
+                            navigation.setKey(Constant.API_MAPS);
 
-                        navigation.setStartLocation(startLocation);
-                        navigation.setEndPosition(endLocation);
+                            LatLng startLocation = new LatLng(
+                                    location.getLatitude(),
+                                    location.getLongitude()
+                            );
+                            LatLng endLocation = new LatLng(latLng.latitude, latLng.longitude);
 
-                        navigation.setTitleStart("Anda");
-                        navigation.setTitleEnd(s);
+                            navigation.setStartLocation(startLocation);
+                            navigation.setEndPosition(endLocation);
 
-                        navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
-                        navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                            navigation.setTitleStart("Anda");
+                            navigation.setTitleEnd(checkedJurusan+"-"+s);
 
-                        navigation.find(false,false);
+                            navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                            navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+
+                            navigation.clearMaps();
+
+                            navigation.find(false,false);
+                            listNavigation.put(s, navigation);
+                        }
                     });
                 }else{
                     for (Map.Entry<String, LatLng> entry : listDriver.entrySet()){
-                        navigation = new Navigation();
+                        if (activeOrder){
 
-                        navigation.setMap(mMap);
-                        navigation.setContext(getApplicationContext());
-                        navigation.setActivity(MainActivity.this);
-                        navigation.setListener(MainActivity.this);
-                        navigation.setKey(Constant.API_MAPS);
+                            Navigation navigation = new Navigation();
 
-                        LatLng startLocation = new LatLng(
-                                location.getLatitude(),
-                                location.getLongitude()
-                        );
-                        LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
-                        navigation.setStartLocation(startLocation);
-                        navigation.setEndPosition(endLocation);
+                            navigation.setMap(mMap);
+                            navigation.setContext(getApplicationContext());
+                            navigation.setActivity(MainActivity.this);
+                            navigation.setListener(MainActivity.this);
+                            navigation.setKey(Constant.API_MAPS);
 
-                        navigation.setTitleStart("Anda");
-                        navigation.setTitleEnd(entry.getKey());
+                            LatLng startLocation = new LatLng(
+                                    location.getLatitude(),
+                                    location.getLongitude()
+                            );
+                            LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
+                            navigation.setStartLocation(startLocation);
+                            navigation.setEndPosition(endLocation);
 
-                        navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
-                        navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                            navigation.setTitleStart("Anda");
+                            navigation.setTitleEnd(checkedJurusan+"-"+entry.getKey());
 
-                        navigation.find(false,false);
+                            navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
+                            navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
+                            navigation.clearMaps();
+
+                            navigation.find(false,false);
+                            listNavigation.put(entry.getKey(), navigation);
+                        }
                     }
                 }
             }else{
@@ -356,7 +400,50 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             locationManager.requestLocationUpdates(provider, 1000, 500, this);
         }
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        clearOrder();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        clearOrder();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        clearOrder();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        clearOrder();
+    }
+
     private void clearOrder(){
+        if (trackDriver != null){
+            trackDriver.remove();
+        }
+        if (trackRoom !=null){
+            trackRoom.remove();
+        }
+        listDriver.clear();
+        if (listNavigation.size() > 0){
+            for (Map.Entry<String, Navigation> listNav : listNavigation.entrySet()){
+                Log.d(TAG, "clearOrder "+listNav.getKey());
+                listNav.getValue().clearMaps();
+            }
+        }
+        if (mMap != null){
+            mMap.clear();
+        }
+
+        activeOrder = false;
         String idUser = getPref(Constant.ID_USER, "0");
         boolean isActive = false;
         ActiveOrder activeOrder = new ActiveOrder(idUser, "", isActive);
@@ -391,14 +478,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     }
     @Override
     public void onLocationChanged(Location location) {
+        Log.d(TAG, "onLocationChanged: activeOrder "+activeOrder);
         this.location = location;
-        if (
-                !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLatitude())) &&
-                        !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLongitude()))
-        ) {
-            setPref(Constant.MY_OLD_LATITUDE, String.valueOf(location.getLatitude()));
-            setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(location.getLongitude()));
-            setTrack();
+        if (activeOrder){
+            if (
+                    !getPref(Constant.MY_OLD_LATITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLatitude())) &&
+                            !getPref(Constant.MY_OLD_LONGITUDE, "0").equalsIgnoreCase(String.valueOf(location.getLongitude()))
+            ) {
+                setPref(Constant.MY_OLD_LATITUDE, String.valueOf(location.getLatitude()));
+                setPref(Constant.MY_OLD_LONGITUDE, String.valueOf(location.getLongitude()));
+                setTrack();
+            }
+        }else{
+            clearOrder();
         }
     }
     @Override
@@ -413,26 +505,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
     public void onProviderDisabled(String provider) {
 
     }
-    @Override
-    protected void onStop() {
-        locationManager.removeUpdates(this);
-        super.onStop();
-    }
-    @Override
-    protected void onDestroy() {
-        locationManager.removeUpdates(this);
-        super.onDestroy();
-    }
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-        }
-        locationManager.requestLocationUpdates(provider, 10000, 5000, this);
-    }
+
     public void listPlatDriver(){
         if (activeOrder){
             HashMap<String, String> subListUser = new HashMap<>();
@@ -519,6 +592,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         if (getPref(Constant.STATE_ORDER, false)){
             startActivity(new Intent(MainActivity.this, ActiveOrderActivity.class));
             finish();
+        }
+    }
+
+    @Override
+    public void onMyLocationChange(Location location) {
+        if (!activeOrder){
+            centerMaps();
         }
     }
 }
