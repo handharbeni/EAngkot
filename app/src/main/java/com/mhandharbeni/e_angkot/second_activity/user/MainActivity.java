@@ -298,6 +298,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             spinnerTujuan.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                    Log.d(TAG, "onItemSelected: "+listTujuan.get(position));
                     checkedTujuan = listTujuan.get(position);
                 }
 
@@ -342,6 +343,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         if (checkedJurusan != null){
 
             String jurusan = checkedJurusan;
+            String tujuan = checkedTujuan;
 
             CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER);
             Query query = user.whereEqualTo("jurusan", jurusan);
@@ -353,11 +355,13 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                         for (DocumentSnapshot documentSnapshot:queryDocumentSnapshots.getDocuments()){
                             if (documentSnapshot.get("isActive") != null){
                                 if ((boolean)documentSnapshot.get("isActive")){
-                                    LatLng latLngDriver = new LatLng(
-                                            Double.valueOf(documentSnapshot.get("latitude").toString()),
-                                            Double.valueOf(documentSnapshot.get("longitude").toString())
-                                    );
-                                    listDriver.put(documentSnapshot.get("platNo").toString(), latLngDriver);
+                                    if (documentSnapshot.get("tujuan").toString().equalsIgnoreCase(tujuan)){
+                                        LatLng latLngDriver = new LatLng(
+                                                Double.valueOf(documentSnapshot.get("latitude").toString()),
+                                                Double.valueOf(documentSnapshot.get("longitude").toString())
+                                        );
+                                        listDriver.put(documentSnapshot.get("platNo").toString(), latLngDriver);
+                                    }
                                 }
                             }
 
@@ -584,23 +588,30 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             AppCompatButton btnMasuk = sheetView.findViewById(R.id.btnMasuk);
 
             CollectionReference crplatNo = getFirebase().getDb().collection(Constant.COLLECTION_ROOM);
+
+
             ListenerRegistration listenerPLat = crplatNo.addSnapshotListener((queryDocumentSnapshots, e) -> {
                 txtPlatNo.removeAllViews();
                 for (DocumentSnapshot documentSnapshot: Objects.requireNonNull(queryDocumentSnapshots).getDocuments()){
                     if (Objects.requireNonNull(documentSnapshot.get("jurusan")).toString().equalsIgnoreCase(checkedJurusan)){
-                        subListUser.putAll((Map<String, String>) Objects.requireNonNull(documentSnapshot.get("listUser")));
-                        listUser.put(String.valueOf(documentSnapshot.get("platNo")), subListUser);
-                        String fbTotalAngkutan = String.valueOf(documentSnapshot.get("count"));
-                        count.set(Integer.valueOf(fbTotalAngkutan));
-                        String fbPlatNo = String.valueOf(documentSnapshot.get("platNo"));
-                        Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
-                        layout_chip.setClickable(true);
-                        layout_chip.setCheckable(true);
-                        CharSequence charSequence =fbPlatNo+":"+fbTotalAngkutan;
+                        if (documentSnapshot.get("tujuan")!=null){
+                            showLog("COLLECTION TUJUAN", documentSnapshot.get("tujuan").toString());
+                            if (documentSnapshot.get("tujuan").toString().equalsIgnoreCase(checkedTujuan)){
+                                subListUser.putAll((Map<String, String>) Objects.requireNonNull(documentSnapshot.get("listUser")));
+                                listUser.put(String.valueOf(documentSnapshot.get("platNo")), subListUser);
+                                String fbTotalAngkutan = String.valueOf(documentSnapshot.get("count"));
+                                count.set(Integer.valueOf(fbTotalAngkutan));
+                                String fbPlatNo = String.valueOf(documentSnapshot.get("platNo"));
+                                Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
+                                layout_chip.setClickable(true);
+                                layout_chip.setCheckable(true);
+                                CharSequence charSequence =fbPlatNo+":"+fbTotalAngkutan;
 
-                        layout_chip.setTag(documentSnapshot.get("idDriver"));
-                        layout_chip.setChipText(charSequence);
-                        txtPlatNo.addView(layout_chip);
+                                layout_chip.setTag(documentSnapshot.get("idDriver"));
+                                layout_chip.setChipText(charSequence);
+                                txtPlatNo.addView(layout_chip);
+                            }
+                        }
                     }
                 }
             });
@@ -630,6 +641,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     room.setPlatNo(platNo.get());
 
                     setPref(Constant.ACTIVE_ORDER_JURUSAN, checkedJurusan);
+                    setPref(Constant.ACTIVE_ORDER_TUJUAN, checkedTujuan);
                     setPref(Constant.ACTIVE_ORDER_COUNT, count.get());
                     setPref(Constant.ACTIVE_ORDER_IDDRIVER, idDriver.get());
                     setPref(Constant.ACTIVE_ORDER_PLATNO, platNo.get());

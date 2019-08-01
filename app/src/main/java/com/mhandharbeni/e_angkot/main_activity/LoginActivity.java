@@ -25,6 +25,7 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
@@ -234,7 +235,7 @@ public class LoginActivity extends BaseActivity {
 
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
-                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN,"ASD");
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
                 }
                 setPref(Constant.IS_LOGGIN, true);
@@ -284,7 +285,7 @@ public class LoginActivity extends BaseActivity {
                             true,
                             platNo,
                             false,
-                            "ASD"
+                            CoreApplication.getPref().getString(Constant.ID_TUJUAN, "0")
                     );
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
                 }

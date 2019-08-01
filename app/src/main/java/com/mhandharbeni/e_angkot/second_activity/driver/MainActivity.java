@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -18,6 +19,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.chivorn.smartmaterialspinner.SmartMaterialSpinner;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,6 +38,7 @@ import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.model.Room;
 import com.mhandharbeni.e_angkot.model.TravelHistory;
 import com.mhandharbeni.e_angkot.second_activity.driver.adapter.TravelHistoryAdapter;
@@ -58,7 +61,7 @@ public class MainActivity extends BaseActivity implements
         OnMapReadyCallback,
         Navigation.NavigationListener,
         LocationListener,
-        GpsStatus.Listener {
+        GpsStatus.Listener, AdapterView.OnItemSelectedListener {
     private GoogleMap mMap;
 
     @BindView(R.id.fab)
@@ -79,12 +82,16 @@ public class MainActivity extends BaseActivity implements
     @BindView(R.id.txtGps)
     TextView txtGps;
 
+    @BindView(R.id.spinnerTujuan)
+    SmartMaterialSpinner spinnerTujuan;
+
     HashMap<String, LatLng> listUser = new HashMap<>();
     HashMap<String, ListenerRegistration> listSnapshot = new HashMap<>();
 
     public ListenerRegistration trackOrder;
     //    public Navigation navigation;
     HashMap<String, Navigation> listNavigation = new HashMap<>();
+    List<String> listTujuan = new ArrayList<>();
 
 
     LocationManager locationManager;
@@ -279,7 +286,8 @@ public class MainActivity extends BaseActivity implements
     private void listenOrder() {
         CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_ORDER);
         Query query = user
-                .whereEqualTo("jurusan", getPref().getString(Constant.ID_JURUSAN, "0"));
+                .whereEqualTo("jurusan", getPref().getString(Constant.ID_JURUSAN, "0"))
+                .whereEqualTo("tujuan", getPref().getString(Constant.ID_TUJUAN, "0"));
 
         trackOrder = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
             if (queryDocumentSnapshots.getDocuments().size() > 0) {
@@ -331,10 +339,13 @@ public class MainActivity extends BaseActivity implements
         getPref().registerOnSharedPreferenceChangeListener((encryptedPreferences, key) -> {
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
                 if (getPref(Constant.DRIVER_ISACTIVE, false)) {
+                    deleteRoom();
                     createRoom();
                     listenOrder();
+                    updateTrackLocationDriver(true);
                 } else {
                     deleteRoom();
+                    updateTrackLocationDriver(false);
                     if (trackOrder != null)
                         trackOrder.remove();
 
@@ -345,13 +356,28 @@ public class MainActivity extends BaseActivity implements
                     centerMaps();
                 }
             }
+            if(key.equalsIgnoreCase(Constant.ID_TUJUAN)){
+                if (trackOrder != null){
+                    trackOrder.remove();
+                }
+                deleteRoom();
+                createRoom();
+                listenOrder();
+                updateTrackLocationDriver(true);
+            }
         });
 
     }
 
     private void createRoom() {
         Room room = new Room(
-                String.valueOf(getPref(Constant.ID_USER, "0")), String.valueOf(getPref(Constant.ID_JURUSAN, "0")), String.valueOf(getPref(Constant.PLAT_NO, "0")), 0, new HashMap<>());
+                String.valueOf(getPref(Constant.ID_USER, "0")),
+                String.valueOf(getPref(Constant.ID_JURUSAN, "0")),
+                String.valueOf(getPref(Constant.PLAT_NO, "0")),
+                0,
+                new HashMap<>(),
+                String.valueOf(getPref(Constant.ID_TUJUAN, "0"))
+        );
 
         getFirebase()
                 .getDb()
@@ -368,6 +394,35 @@ public class MainActivity extends BaseActivity implements
                 .collection(Constant.COLLECTION_ROOM)
                 .document(String.valueOf(getPref(Constant.PLAT_NO, "0")))
                 .delete();
+    }
+
+    private void updateTrackLocationDriver(boolean active){
+        boolean isActive = active;
+        boolean isLogin = true;
+        String id = getPref(Constant.ID_USER, "0");
+        String jurusan = getPref(Constant.ID_JURUSAN, "0");
+        String tujuan = getPref(Constant.ID_TUJUAN, "0");
+        String platNo = getPref(Constant.PLAT_NO, "0");
+        String token = getPref(Constant.ID_TOKEN, "0");
+        LocationDriver locationDriver = new LocationDriver();
+        locationDriver.setId(id);
+        locationDriver.setActive(isActive);
+        locationDriver.setLogin(isLogin);
+        locationDriver.setJurusan(jurusan);
+        locationDriver.setTujuan(tujuan);
+        if (isActive){
+            String latitude = null;
+            String longitude = null;
+            if (mMap!=null){
+                latitude = String.valueOf(mMap.getMyLocation().getLatitude());
+                longitude = String.valueOf(mMap.getMyLocation().getLongitude());
+            }
+            locationDriver.setLatitude(latitude);
+            locationDriver.setLongitude(longitude);
+        }
+        locationDriver.setPlatNo(platNo);
+        locationDriver.setToken(token);
+        getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(id).set(locationDriver);
     }
 
     @Override
@@ -518,6 +573,18 @@ public class MainActivity extends BaseActivity implements
                         txtPenumpang.setText(String.valueOf(listPenumpang.size()));
                     }
                 });
+        getFirebase().listenData(Constant.COLLECTION_TERMINAL, listDocument -> {
+            if (listDocument.size() > 0){
+                listTujuan.clear();
+                for (DocumentSnapshot sTerminal : listDocument){
+                    listTujuan.add(sTerminal.getId());
+                }
+                spinnerTujuan.setItem(listTujuan);
+                spinnerTujuan.setSelection(listTujuan.indexOf(getPref(Constant.ID_TUJUAN, "")), true);
+            }
+        });
+
+        spinnerTujuan.setOnItemSelectedListener(this);
     }
 
     @Override
@@ -549,5 +616,18 @@ public class MainActivity extends BaseActivity implements
                 txtGps.setText("Siap");
                 break;
         }
+    }
+
+    @Override
+    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (getPref(Constant.DRIVER_ISACTIVE, false)){
+            setPref(Constant.ID_TUJUAN, listTujuan.get(position));
+            updateTrackLocationDriver(true);
+        }
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parent) {
+
     }
 }

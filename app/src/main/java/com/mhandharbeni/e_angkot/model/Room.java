@@ -8,6 +8,7 @@ public class Room {
     int count;
     String platNo;
     HashMap<String, String> listUser;
+    String tujuan;
 
     public Room() {
     }
@@ -17,13 +18,15 @@ public class Room {
             String jurusan,
             String platNo,
             int count,
-            HashMap<String, String> listUser
+            HashMap<String, String> listUser,
+            String tujuan
     ) {
         this.idDriver = idDriver;
         this.jurusan = jurusan;
         this.platNo = platNo;
         this.count = count;
         this.listUser = listUser;
+        this.tujuan = tujuan;
     }
 
     public String getIdDriver() {
@@ -64,5 +67,13 @@ public class Room {
 
     public void setListUser(HashMap<String, String> listUser) {
         this.listUser = listUser;
+    }
+
+    public String getTujuan() {
+        return tujuan;
+    }
+
+    public void setTujuan(String tujuan) {
+        this.tujuan = tujuan;
     }
 }

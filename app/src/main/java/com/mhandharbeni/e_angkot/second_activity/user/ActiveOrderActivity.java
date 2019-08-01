@@ -48,6 +48,8 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
     TextView txtPlatNo;
     @BindView(R.id.txtJurusan)
     TextView txtJurusan;
+    @BindView(R.id.txtTujuan)
+    TextView txtTujuan;
     @BindView(R.id.fabDone)
     FloatingActionButton fabDone;
 
@@ -97,6 +99,7 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
     private void setLabel(){
         txtPlatNo.setText(String.valueOf(getPref(Constant.ACTIVE_ORDER_PLATNO, "0")).toUpperCase());
         txtJurusan.setText(String.valueOf(getPref(Constant.ACTIVE_ORDER_JURUSAN, "0")).toUpperCase());
+        txtTujuan.setText(String.valueOf(getPref(Constant.ACTIVE_ORDER_TUJUAN, "0")).toUpperCase());
     }
 
     @Override
@@ -111,6 +114,7 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
         int count = getPref(Constant.ACTIVE_ORDER_COUNT, 0);
         String platNo = getPref(Constant.ACTIVE_ORDER_PLATNO, "0");
         String jurusan = getPref(Constant.ACTIVE_ORDER_JURUSAN, "0");
+        String tujuan = getPref(Constant.ACTIVE_ORDER_TUJUAN, "0");
         String idDriver = getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0");
 
         HashMap<String, String> listUser = new HashMap<>();
@@ -122,6 +126,7 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
             Room room = new Room();
             room.setPlatNo(platNo);
             room.setJurusan(jurusan);
+            room.setTujuan(tujuan);
             room.setCount(count - 1);
             room.setIdDriver(idDriver);
             room.setListUser(listUser);

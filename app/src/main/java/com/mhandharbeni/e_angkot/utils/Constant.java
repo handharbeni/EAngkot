@@ -43,6 +43,7 @@ public class Constant {
 
     public static String ID_TOKEN = "ID_TOKEN";
     public static String ID_JURUSAN = "ID_JURUSAN";
+    public static String ID_TUJUAN = "ID_TUJUAN";
 
     public static String COLLECTION_USER = "e_angkot_user";
     public static String COLLECTION_DRIVER = "e_angkot_driver";
@@ -72,6 +73,7 @@ public class Constant {
     public static String STATE_ORDER = "STATE_ORDER";
 
     public static String ACTIVE_ORDER_JURUSAN = "ACTIVE_ORDER_JURUSAN";
+    public static String ACTIVE_ORDER_TUJUAN = "ACTIVE_ORDER_TUJUAN";
     public static String ACTIVE_ORDER_COUNT = "ACTIVE_ORDER_COUNT";
     public static String ACTIVE_ORDER_IDDRIVER = "ACTIVE_ORDER_IDDRIVER";
     public static String ACTIVE_ORDER_PLATNO = "ACTIVE_ORDER_PLATNO";

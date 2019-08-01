@@ -6,18 +6,16 @@ public class Location {
     String longitude;
     String token;
     boolean isLogin;
-    String tujuan;
 
     public Location() {
     }
 
-    public Location(String id, String latitude, String longitude, boolean isLogin, String token, String tujuan) {
+    public Location(String id, String latitude, String longitude, boolean isLogin, String token) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
         this.isLogin = isLogin;
         this.token = token;
-        this.tujuan = tujuan;
     }
 
     public Location(String id, String latitude, String longitude) {
@@ -69,13 +67,5 @@ public class Location {
 
     public void setLogin(boolean login) {
         isLogin = login;
-    }
-
-    public String getTujuan() {
-        return tujuan;
-    }
-
-    public void setTujuan(String tujuan) {
-        this.tujuan = tujuan;
     }
 }

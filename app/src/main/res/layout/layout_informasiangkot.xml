@@ -25,7 +25,7 @@
             <TextView
                 android:id="@+id/txtRatingAngkot"
                 android:textAlignment="center"
-                android:text="5"
+                android:text="0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
@@ -42,7 +42,7 @@
             <TextView
                 android:id="@+id/txtRatingDriver"
                 android:textAlignment="center"
-                android:text="5"
+                android:text="0"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
         </LinearLayout>
