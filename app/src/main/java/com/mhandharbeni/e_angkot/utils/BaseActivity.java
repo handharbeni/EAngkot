@@ -6,10 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -18,9 +21,12 @@ import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,12 +34,28 @@ import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
+import com.bumptech.glide.Glide;
 import com.crashlytics.android.Crashlytics;
+import com.esafirm.imagepicker.features.ImagePicker;
+import com.esafirm.imagepicker.features.ReturnMode;
+import com.esafirm.imagepicker.model.Image;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.storage.OnPausedListener;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageMetadata;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
@@ -46,17 +68,21 @@ import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.model.Profile;
 import com.mhandharbeni.e_angkot.services.LocationServices;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
+import br.com.simplepass.circularprogressimagelib.CircularProgressImageView;
 import butterknife.BindView;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
+import de.hdodenhof.circleimageview.CircleImageView;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -67,7 +93,7 @@ public class BaseActivity extends AppCompatActivity {
     public static String TAG = BaseActivity.class.getSimpleName();
 
     @BindView(R.id.idProfile)
-    public AppCompatImageView idProfile;
+    public CircleImageView idProfile;
 
     @BindView(R.id.idTitle)
     TextView idTitle;
@@ -75,12 +101,16 @@ public class BaseActivity extends AppCompatActivity {
     @BindView(R.id.idSwitch)
     public SwitchCompat idSwitch;
 
+    View sheetView;
+
     public LocationServices gpsService;
 
     private LocationListener mLocationListener;
     private LocationManager mLocationManager;
     private final int LOCATION_INTERVAL = 2000;
     private final int LOCATION_DISTANCE = 10;
+
+    private String imagePath;
 
 
     @Override
@@ -94,6 +124,30 @@ public class BaseActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         listenerSwitch();
+        initDataProfile();
+    }
+
+    private void initDataProfile(){
+        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), (documentSnapshot, e) -> {
+            if (documentSnapshot.exists()){
+                if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
+                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(idProfile);
+                }else{
+//                    Picasso.get().load(R.drawable.ic_account_circle_white).into(idProfile);
+                    idProfile.setImageResource(R.drawable.ic_account_circle_white);
+                }
+            }
+        });
+//        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
+//            if (documentSnapshot.exists()){
+//                if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
+//                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(idProfile);
+//                }else{
+////                    Picasso.get().load(R.drawable.ic_account_circle_white).into(idProfile);
+//                    idProfile.setImageResource(R.drawable.ic_account_circle_white);
+//                }
+//            }
+//        });
     }
 
     public ToolsFirebase getFirebase() {
@@ -116,7 +170,7 @@ public class BaseActivity extends AppCompatActivity {
     public void onProfileClick(){
 //        startActivity(new Intent(this, ProfileActivity.class));
         BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
-        View sheetView = getLayoutInflater().inflate(R.layout.activity_profile, null);
+        sheetView = getLayoutInflater().inflate(R.layout.activity_profile, null);
         mBottomSheetDialog.setContentView(sheetView);
         mBottomSheetDialog.show();
 
@@ -125,10 +179,16 @@ public class BaseActivity extends AppCompatActivity {
         TextInputEditText txtNama = sheetView.findViewById(R.id.txtNama);
         TextInputEditText txtAlamat = sheetView.findViewById(R.id.txtAlamat);
         TextInputEditText txtNomorHape = sheetView.findViewById(R.id.txtNomorHape);
+        CircleImageView profile_image = sheetView.findViewById(R.id.profile_image);
+
         Button btnUpdate = sheetView.findViewById(R.id.btnUpdate);
         Button btnKeluar = sheetView.findViewById(R.id.btnLogout);
 
         txtLabelUser.setText(String.valueOf(getPref(Constant.MODE, "USER")).toUpperCase());
+
+        profile_image.setOnClickListener(v -> {
+            selectImage();
+        });
 
         getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
             if (documentSnapshot.exists()){
@@ -136,6 +196,9 @@ public class BaseActivity extends AppCompatActivity {
                 txtNama.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
                 txtAlamat.setText(Objects.requireNonNull(documentSnapshot.get("alamat")).toString());
                 txtNomorHape.setText(Objects.requireNonNull(documentSnapshot.get("nomorHp")).toString());
+                if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
+                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(profile_image);
+                }
             }
         });
 
@@ -444,5 +507,88 @@ public class BaseActivity extends AppCompatActivity {
         Crashlytics.setUserIdentifier(nama);
         Crashlytics.setUserEmail(email);
         Crashlytics.setUserName(nama);
+    }
+
+    public void selectImage(){
+        ImagePicker.create(this)
+                .returnMode(ReturnMode.ALL) // set whether pick and / or camera action should return immediate result or not.
+                .folderMode(true) // folder mode (false by default)
+                .toolbarFolderTitle("Folder") // folder selection title
+                .toolbarImageTitle("Pilih Gambar") // image selection title
+                .toolbarArrowColor(Color.BLACK) // Toolbar 'up' arrow color
+                .includeVideo(false) // Show video on image picker
+                .single() // single mode
+                .showCamera(true) // show camera or not (true by default)
+                .enableLog(false) // disabling log
+                .start(); // start image picker activity with request code
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (ImagePicker.shouldHandle(requestCode, resultCode, data)) {
+            Image image = ImagePicker.getFirstImageOrNull(data);
+            if (sheetView != null){
+                CircleImageView profile_image = sheetView.findViewById(R.id.profile_image);
+                RelativeLayout loadingPanel = sheetView.findViewById(R.id.loadingPanel);
+                profile_image.setImageURI(Uri.parse(image.getPath()));
+                profile_image.setVisibility(View.GONE);
+                loadingPanel.setVisibility(View.VISIBLE);
+
+                imagePath = image.getPath();
+                uploadImage(image, Uri.parse("file://"+image.getPath()));
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void uploadImage(Image image, Uri file){
+        StorageReference storageRef = CoreApplication.getStorage().getReference();
+
+        // Create the file metadata
+        StorageMetadata metadata = new StorageMetadata.Builder()
+                .setContentType("image/jpeg")
+                .build();
+        UploadTask imageProfileRef = storageRef.child(Constant.STORAGE_FOLDER+"/"+CoreApplication.getPref().getString(Constant.ID_USER, "0")+".jpg").putFile(file, metadata);
+        imageProfileRef
+                .addOnCompleteListener(task -> {
+                    showLog("Complete Upload", task.getResult().getMetadata().getBucket().toString());
+                })
+                .addOnSuccessListener(taskSnapshot -> {
+//                    showLog("Complete Upload Success", );
+                    taskSnapshot.getMetadata().getReference().getDownloadUrl().addOnCompleteListener(task -> {
+                        showLog("Complete Upload Success", String.valueOf(task.getResult()));
+                        if (sheetView != null){
+                            TextInputEditText txtNama = sheetView.findViewById(R.id.txtNama);
+                            TextInputEditText txtAlamat = sheetView.findViewById(R.id.txtAlamat);
+                            TextInputEditText txtNomorHape = sheetView.findViewById(R.id.txtNomorHape);
+                            RelativeLayout loadingPanel = sheetView.findViewById(R.id.loadingPanel);
+                            CircleImageView profile_image = sheetView.findViewById(R.id.profile_image);
+                            Picasso.get()
+                                    .load(task.getResult())
+                                    .placeholder(getResources().getDrawable(R.drawable.ic_done_white_24dp))
+                                    .into(profile_image);
+                            loadingPanel.setVisibility(View.GONE);
+                            profile_image.setVisibility(View.VISIBLE);
+                            Profile profile = new Profile(
+                                    getPref(Constant.ID_USER, "0"),
+                                    txtNama.getText().toString(),
+                                    txtAlamat.getText().toString(),
+                                    task.getResult().toString(),
+                                    txtNomorHape.getText().toString(),
+                                    Constant.TypeUser.USER
+                            );
+                            CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_PROFILE)
+                                    .document(CoreApplication.getPref().getString(Constant.ID_USER, "0"))
+                                    .set(profile);
+                        }
+                    });
+                })
+                .addOnProgressListener(taskSnapshot -> {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                    showLog("Complete Upload Progress", String.valueOf(progress));
+                })
+                .addOnPausedListener(taskSnapshot -> {
+                    showLog("Complete Upload Paused");
+                });
     }
 }

@@ -7,6 +7,7 @@ import com.facebook.stetho.Stetho;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.storage.FirebaseStorage;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
@@ -16,11 +17,13 @@ public class CoreApplication extends Application {
 
     private static EncryptedPreferences encryptedPreferences;
     private static ToolsFirebase toolsFirebase;
+    private static FirebaseStorage storage;
 
     @Override
     public void onCreate() {
         super.onCreate();
         Fabric.with(this, new Crashlytics());
+        storage = FirebaseStorage.getInstance(Constant.STORAGE_BUCKET);
         FirebaseAnalytics.getInstance(this);
         FirebaseMessaging.getInstance().setAutoInitEnabled(true);
         Stetho.initializeWithDefaults(this);
@@ -43,5 +46,12 @@ public class CoreApplication extends Application {
 
     public static ToolsFirebase getFirebase() {
         return toolsFirebase;
+    }
+
+    public static FirebaseStorage getStorage() {
+        if (storage == null){
+            storage = FirebaseStorage.getInstance(Constant.STORAGE_BUCKET);
+        }
+        return storage;
     }
 }

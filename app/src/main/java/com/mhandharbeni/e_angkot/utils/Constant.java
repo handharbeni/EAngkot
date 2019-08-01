@@ -3,15 +3,12 @@ package com.mhandharbeni.e_angkot.utils;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.provider.Settings;
 
 import androidx.appcompat.app.AlertDialog;
-
-import java.net.InetAddress;
 
 public class Constant {
     public enum TypeUser{
@@ -23,6 +20,8 @@ public class Constant {
     public static String CHANNEL_TITLE = "Scanning Location";
 
     public static String API_MAPS = "AIzaSyAr58RiTYuSLPHi4YxexeysNlspy4Yfk_s";
+    public static String STORAGE_BUCKET = "gs://prototypeproject-1d503.appspot.com";
+    public static String STORAGE_FOLDER = "E-ANGKOT";
 //    public static String API_MAPS = "AIzaSyDc0nBVJlzxmgVAFhk44SIfNnIWvGDwvh8";
 
     public static String[] listPermission = new String[]{
