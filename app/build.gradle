@@ -76,6 +76,7 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.9.0'
     implementation 'de.hdodenhof:circleimageview:3.0.0'
     implementation 'br.com.simplepass:imageview-circular-progress:1.0.5'
+    implementation 'com.github.chivorns:smartmaterialspinner:1.1.5'
     implementation project(path: ':drawroutelibrary-0.0.5')
 
 }

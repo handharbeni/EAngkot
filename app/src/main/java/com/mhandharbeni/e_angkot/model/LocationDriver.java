@@ -9,11 +9,12 @@ public class LocationDriver {
     boolean isLogin;
     String platNo;
     boolean isActive;
+    String tujuan;
 
     public LocationDriver() {
     }
 
-    public LocationDriver(String id, String latitude, String longitude, String token, String jurusan, boolean isLogin, String platNo, boolean isActive) {
+    public LocationDriver(String id, String latitude, String longitude, String token, String jurusan, boolean isLogin, String platNo, boolean isActive, String tujuan) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -22,6 +23,7 @@ public class LocationDriver {
         this.isLogin = isLogin;
         this.platNo = platNo;
         this.isActive = isActive;
+        this.tujuan = tujuan;
     }
 
     public String getId() {
@@ -86,5 +88,13 @@ public class LocationDriver {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public String getTujuan() {
+        return tujuan;
+    }
+
+    public void setTujuan(String tujuan) {
+        this.tujuan = tujuan;
     }
 }

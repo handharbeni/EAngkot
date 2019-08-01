@@ -468,7 +468,8 @@ public class BaseActivity extends AppCompatActivity {
                             String.valueOf(mLastLocation.getLatitude()),
                             String.valueOf(mLastLocation.getLongitude()),
                             true,
-                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0")
+                            CoreApplication.getPref().getString(Constant.ID_TOKEN, "0"),
+                            "ASD"
                     );
                     CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
                 }else{
@@ -480,7 +481,8 @@ public class BaseActivity extends AppCompatActivity {
                             CoreApplication.getPref().getString(Constant.ID_JURUSAN, "0"),
                             true,
                             CoreApplication.getPref().getString(Constant.PLAT_NO, "N/A"),
-                            CoreApplication.getPref().getBoolean(Constant.DRIVER_ISACTIVE, false)
+                            CoreApplication.getPref().getBoolean(Constant.DRIVER_ISACTIVE, false),
+                            "ASD"
                     );
                     CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(locationDriver);
                 }

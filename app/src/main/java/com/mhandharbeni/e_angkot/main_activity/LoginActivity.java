@@ -29,6 +29,7 @@ import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.model.LocationDriver;
+import com.mhandharbeni.e_angkot.model.Terminal;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
@@ -87,6 +88,7 @@ public class LoginActivity extends BaseActivity {
         ButterKnife.bind(this);
 
         hideActionBar();
+        insertTerminal();
         insertJurusan();
     }
 
@@ -232,7 +234,7 @@ public class LoginActivity extends BaseActivity {
 
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
-                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
+                    Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN,"ASD");
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
                 }
                 setPref(Constant.IS_LOGGIN, true);
@@ -281,7 +283,8 @@ public class LoginActivity extends BaseActivity {
                             jurusan,
                             true,
                             platNo,
-                            false
+                            false,
+                            "ASD"
                     );
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
                 }
@@ -353,6 +356,29 @@ public class LoginActivity extends BaseActivity {
             mJurusan.setId(jurusan);
 
             getFirebase().getDb().collection(Constant.COLLECTION_JURUSAN).document(jurusan).set(mJurusan);
+        }
+    }
+
+    private void insertTerminal(){
+        String[] aTerminal = new String[]{
+                "Terminal Arjosari",
+                "Terminal Landungsari",
+                "Terminal Gadang",
+                "Terminal Hamid Rusdi",
+                "Terminal Madyopuro",
+                "Terminal Mulyorejo",
+                "Terminal Batu",
+                "Terminal Kepanjen",
+                "Terminal Dampit",
+                "Terminal Wajak",
+                "Terminal Lawang",
+                "Terminal Tumpang"
+        };
+        for (String terminal : aTerminal){
+            Terminal mTerminal = new Terminal();
+            mTerminal.setId(terminal);
+
+            getFirebase().getDb().collection(Constant.COLLECTION_TERMINAL).document(terminal).set(mTerminal);
         }
     }
 }

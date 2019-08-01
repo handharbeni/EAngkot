@@ -8,6 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <HorizontalScrollView
+        android:visibility="gone"
         android:layout_gravity="center"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:id="@+id/mainLayoutChip"
@@ -21,6 +22,44 @@
             app:singleLine="true">
         </com.google.android.material.chip.ChipGroup>
     </HorizontalScrollView>
+    <com.chivorn.smartmaterialspinner.SmartMaterialSpinner
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:id="@+id/spinnerJurusan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:smsp_enableSearchHeader="true"
+        app:smsp_isSearchable="true"
+        android:spinnerMode="dialog"
+        app:smsp_floatingLabelColor="#1976D2"
+        app:smsp_floatingLabelText="Jurusan"
+        app:smsp_hint="Daftar Jurusan"
+        app:smsp_hintColor="#388E3C"
+        app:smsp_itemColor="#512DA8"
+        app:smsp_itemListColor="#7C4DFF"
+        app:smsp_itemListHintBackgroundColor="#808080"
+        app:smsp_itemListHintColor="#FFFFFF"
+        app:smsp_multilineError="false"
+        app:smsp_selectedItemListColor="#FF5252" />
+    <com.chivorn.smartmaterialspinner.SmartMaterialSpinner
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:id="@+id/spinnerTujuan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:smsp_isSearchable="true"
+        android:spinnerMode="dialog"
+        app:smsp_floatingLabelColor="#1976D2"
+        app:smsp_enableSearchHeader="true"
+        app:smsp_floatingLabelText="Tujuan"
+        app:smsp_hint="Daftar Tujuan"
+        app:smsp_hintColor="#388E3C"
+        app:smsp_itemColor="#512DA8"
+        app:smsp_itemListColor="#7C4DFF"
+        app:smsp_itemListHintBackgroundColor="#808080"
+        app:smsp_itemListHintColor="#FFFFFF"
+        app:smsp_multilineError="false"
+        app:smsp_selectedItemListColor="#FF5252" />
     <androidx.appcompat.widget.AppCompatButton
         android:layout_marginTop="20dp"
         android:id="@+id/btnOrder"

@@ -4,14 +4,16 @@ public class ActiveOrder {
     String idUser;
     String jurusan;
     boolean isActive;
+    String tujuan;
 
     public ActiveOrder() {
     }
 
-    public ActiveOrder(String idUser, String jurusan, boolean isActive) {
+    public ActiveOrder(String idUser, String jurusan, boolean isActive, String tujuan) {
         this.idUser = idUser;
         this.jurusan = jurusan;
         this.isActive = isActive;
+        this.tujuan = tujuan;
     }
 
     public String getIdUser() {
@@ -36,5 +38,13 @@ public class ActiveOrder {
 
     public void setActive(boolean active) {
         isActive = active;
+    }
+
+    public String getTujuan() {
+        return tujuan;
+    }
+
+    public void setTujuan(String tujuan) {
+        this.tujuan = tujuan;
     }
 }

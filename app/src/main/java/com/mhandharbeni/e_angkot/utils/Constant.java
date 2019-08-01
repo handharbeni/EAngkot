@@ -55,6 +55,7 @@ public class Constant {
     public static String COLLECTION_RATING_DRIVER = "e_angkot_rating_driver";
     public static String COLLECTION_RATING_ANGKOT = "e_angkot_rating_angkot";
     public static String COLLECTION_TRAVEL_HISTORY = "e_angkot_travel_history";
+    public static String COLLECTION_TERMINAL = "e_angkot_terminal";
 
 
     public static String TOKEN = "TOKEN";

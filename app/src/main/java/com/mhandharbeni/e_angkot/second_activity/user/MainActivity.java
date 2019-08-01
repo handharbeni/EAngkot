@@ -12,12 +12,17 @@ import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.SpinnerAdapter;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 
+import com.chivorn.smartmaterialspinner.SmartMaterialSpinner;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -48,6 +53,7 @@ import com.mhandharbeni.e_angkot.model.Room;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,6 +82,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
 
 
     String checkedJurusan = null;
+    String checkedTujuan = null;
     String checkAngkot = null;
     public static String idDocument;
     public static boolean activeOrder = false;
@@ -194,8 +201,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         if (activeOrder){
             activeOrder = false;
             String idJurusan = checkedJurusan;
+            String tujuan = checkedTujuan;
             boolean isActive = false;
-            ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
+            ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive, tujuan);
 
             CollectionReference user = getFirebase().getDb().collection(Constant.COLLECTION_ORDER);
             Query queryActiveOrder = user.whereEqualTo("idUser", idUser);
@@ -211,16 +219,28 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 }
             });
             checkedJurusan = null;
+            checkedTujuan = null;
             clearOrder();
             centerMaps();
         }else{
             activeOrder = true;
+
+            List<String> listJurusan = new ArrayList<>();
+            List<String> listTujuan = new ArrayList<>();
+
             BottomSheetDialog mBottomSheetDialog = new BottomSheetDialog(this);
             View sheetView = getLayoutInflater().inflate(R.layout.layout_pilihjurusan, null);
             mBottomSheetDialog.setContentView(sheetView);
             mBottomSheetDialog.show();
 
+
+
             ChipGroup txtJurusan = sheetView.findViewById(R.id.txtJurusan);
+            SmartMaterialSpinner spinnerJurusan = sheetView.findViewById(R.id.spinnerJurusan);
+            SmartMaterialSpinner spinnerTujuan = sheetView.findViewById(R.id.spinnerTujuan);
+
+
+
             AppCompatButton btnOrder = sheetView.findViewById(R.id.btnOrder);
 
 
@@ -230,6 +250,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
             querySnapshotTask.addOnCompleteListener(task -> {
                 if (task.getResult().size() > 0){
                     for (DocumentSnapshot documentSnapshot : task.getResult()){
+                        listJurusan.add(documentSnapshot.getId());
                         Chip layout_chip = new Chip(this, null, R.attr.chipStyle);
                         layout_chip.setClickable(true);
                         layout_chip.setCheckable(true);
@@ -237,26 +258,64 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                         layout_chip.setChipText(documentSnapshot.getId());
                         txtJurusan.addView(layout_chip);
                     }
+                    spinnerJurusan.setItem(listJurusan);
+
                 }
             });
 
-            txtJurusan.setOnCheckedChangeListener((chipGroup, i) -> {
-                Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
-                if (chip != null){
-                    checkedJurusan = chip.getText().toString();
-                }else{
-                    checkedJurusan = null;
+
+            CollectionReference collectionTujuan = getFirebase().getDb().collection(Constant.COLLECTION_TERMINAL);
+            Task<QuerySnapshot> querySnapshotTaskTujuan = collectionTujuan.get();
+            querySnapshotTaskTujuan.addOnCompleteListener(task -> {
+                if (task.getResult().size() > 0){
+                    for (DocumentSnapshot documentSnapshot : task.getResult()){
+                        listTujuan.add(documentSnapshot.getId());
+                    }
+
+                    spinnerTujuan.setItem(listTujuan);
+
                 }
             });
+//            txtJurusan.setOnCheckedChangeListener((chipGroup, i) -> {
+//                Chip chip = chipGroup.findViewById(chipGroup.getCheckedChipId());
+//                if (chip != null){
+//                    checkedJurusan = chip.getText().toString();
+//                }else{
+//                    checkedJurusan = null;
+//                }
+//            });
+
+            spinnerJurusan.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                    checkedJurusan = listJurusan.get(position);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                }
+            });
+            spinnerTujuan.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                    checkedTujuan = listTujuan.get(position);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+                }
+            });
+
             btnOrder.setOnClickListener(view -> {
-                if (checkedJurusan == null){
+                if (checkedJurusan == null || checkedTujuan == null){
                     showSnackBar(mainLayout, new SpannableStringBuilder().append("Angkot Belum Di pilih"));
                     mBottomSheetDialog.dismiss();
                     return;
                 }
                 String idJurusan = checkedJurusan;
+                String tujuan = checkedTujuan;
                 boolean isActive = activeOrder;
-                ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive);
+                ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive, tujuan);
 
                 idDocument = CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document().getId();
 
@@ -446,7 +505,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         activeOrder = false;
         String idUser = getPref(Constant.ID_USER, "0");
         boolean isActive = false;
-        ActiveOrder activeOrder = new ActiveOrder(idUser, "", isActive);
+        ActiveOrder activeOrder = new ActiveOrder(idUser, "", isActive, "");
         getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document(idUser).set(activeOrder);
     }
     private void listenOrder(){
