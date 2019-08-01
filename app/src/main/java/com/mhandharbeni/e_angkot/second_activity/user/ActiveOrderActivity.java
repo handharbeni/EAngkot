@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -21,8 +22,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.RatingAngkot;
 import com.mhandharbeni.e_angkot.model.RatingDriver;
@@ -30,6 +38,7 @@ import com.mhandharbeni.e_angkot.model.Room;
 import com.mhandharbeni.e_angkot.model.TravelHistory;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
+import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -53,10 +62,46 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
     @BindView(R.id.fabDone)
     FloatingActionButton fabDone;
 
+    BottomAppBar bottomAppBar;
+    String phoneNumberDriver = null;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.mainactivity_useractiveorder);
+
+        Dexter.withActivity(this).withPermissions(Constant.listPermission).withListener(new MultiplePermissionsListener() {
+            @Override
+            public void onPermissionsChecked(MultiplePermissionsReport report) {
+
+            }
+
+            @Override
+            public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+
+            }
+        }).check();
+
+        fillInformation();
+
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        bottomAppBar.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.chat:
+                    showToast(getApplicationContext(), "Future Release");
+                    break;
+                case R.id.call :
+                    if (phoneNumberDriver != null){
+                        Intent intent = new Intent(Intent.ACTION_CALL);
+
+                        intent.setData(Uri.parse("tel:" + phoneNumberDriver));
+                        startActivity(intent);
+                    }
+                    break;
+            }
+            return false;
+        });
+
 
         ButterKnife.bind(this);
 
@@ -67,6 +112,14 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
         }
 
         hideSwitchActionBar();
+    }
+
+    private void fillInformation(){
+        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0"), documentSnapshot -> {
+            if (documentSnapshot.get("nomorHp") != null){
+                phoneNumberDriver = documentSnapshot.get("nomorHp").toString();
+            }
+        });
     }
 
     @Override

@@ -11,7 +11,7 @@
     <ImageView
         android:layout_width="200dp"
         android:layout_height="200dp"
-        app:srcCompat="@drawable/ic_icon"
+        app:srcCompat="@drawable/logo_angkot"
         android:layout_centerInParent="true"/>
 
 

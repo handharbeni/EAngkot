@@ -4,9 +4,15 @@
     xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/queue"
-        android:icon="@drawable/ic_queue_black"
-        android:title="Masuk Angkot"
-        app:showAsAction="never"/>
+        android:id="@+id/chat"
+        android:icon="@drawable/chat"
+        android:title="Chat Driver"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/call"
+        android:icon="@drawable/call"
+        android:title="Telfon Driver"
+        app:showAsAction="ifRoom"/>
 
 </menu>
