@@ -638,8 +638,8 @@ public class MainActivity extends BaseActivity implements
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        setPref(Constant.ID_TUJUAN, listTujuan.get(position));
         if (getPref(Constant.DRIVER_ISACTIVE, false)){
-            setPref(Constant.ID_TUJUAN, listTujuan.get(position));
             updateTrackLocationDriver(true);
         }
     }
