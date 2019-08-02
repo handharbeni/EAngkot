@@ -119,12 +119,13 @@ public class LoginActivity extends BaseActivity {
     private void initMode() {
         if (getPref(Constant.MODE, "USER").equalsIgnoreCase("USER")) {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_user));
-            fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+            fabSwitch.setImageResource(R.drawable.ic_angkot);
             mainLayoutChip.setVisibility(View.GONE);
             platNoText.setVisibility(View.GONE);
         } else {
             loginTitle.setText(getResources().getString(R.string.txt_label_masuk_driver));
-            fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
+//            fabSwitch.setImageDrawable(getResources().getDrawable(R.drawable.ic_user));
+            fabSwitch.setImageResource(R.drawable.ic_user);
             mainLayoutChip.setVisibility(View.VISIBLE);
             platNoText.setVisibility(View.VISIBLE);
         }

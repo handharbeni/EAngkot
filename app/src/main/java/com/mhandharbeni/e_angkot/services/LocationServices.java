@@ -1,5 +1,6 @@
 package com.mhandharbeni.e_angkot.services;
 
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -7,6 +8,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Binder;
@@ -53,7 +55,7 @@ public class LocationServices extends Service {
 
             if (!CoreApplication.getPref().getString(Constant.ID_USER, "0").equalsIgnoreCase("0")) {
                 String collection = CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user") ? Constant.COLLECTION_TRACK_USER : Constant.COLLECTION_TRACK_DRIVER;
-                if (CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")){
+                if (CoreApplication.getPref().getString(Constant.MODE, "USER").equalsIgnoreCase("user")) {
                     com.mhandharbeni.e_angkot.model.Location location1 = new com.mhandharbeni.e_angkot.model.Location(
                             CoreApplication.getPref().getString(Constant.ID_USER, "0"),
                             String.valueOf(mLastLocation.getLatitude()),
@@ -62,7 +64,7 @@ public class LocationServices extends Service {
                             CoreApplication.getPref().getString(Constant.ID_TOKEN, "0")
                     );
                     CoreApplication.getFirebase().getDb().collection(collection).document(CoreApplication.getPref().getString(Constant.ID_USER, "0")).set(location1);
-                }else{
+                } else {
                     LocationDriver locationDriver = new LocationDriver(
                             CoreApplication.getPref().getString(Constant.ID_USER, "0"),
                             String.valueOf(mLastLocation.getLatitude()),
@@ -134,16 +136,17 @@ public class LocationServices extends Service {
     }
 
     public void startTracking() {
-        initializeLocationManager();
-        mLocationListener = new LocationListener(LocationManager.GPS_PROVIDER);
-
         try {
+            initializeLocationManager();
+            mLocationListener = new LocationListener(LocationManager.GPS_PROVIDER);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    return;
+                }
+            }
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, LOCATION_INTERVAL, LOCATION_DISTANCE, mLocationListener);
 
-        } catch (java.lang.SecurityException ex) {
-            // Log.i(TAG, "fail to request location update, ignore", ex);
-        } catch (IllegalArgumentException ex) {
-            // Log.d(TAG, "gps provider does not exist " + ex.getMessage());
+        } catch (Exception ex) {
         }
 
     }

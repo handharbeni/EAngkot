@@ -340,6 +340,16 @@ public class MainActivity extends BaseActivity implements
             if (key.equalsIgnoreCase(Constant.DRIVER_ISACTIVE)) {
                 if (getPref(Constant.DRIVER_ISACTIVE, false)) {
                     deleteRoom();
+                    updateTrackLocationDriver(false);
+                    if (trackOrder != null)
+                        trackOrder.remove();
+
+                    for (ListenerRegistration listenerRegistration : listSnapshot.values()) {
+                        listenerRegistration.remove();
+                    }
+                    clearMaps();
+                    centerMaps();
+
                     createRoom();
                     listenOrder();
                     updateTrackLocationDriver(true);
@@ -357,13 +367,21 @@ public class MainActivity extends BaseActivity implements
                 }
             }
             if(key.equalsIgnoreCase(Constant.ID_TUJUAN)){
-                if (trackOrder != null){
-                    trackOrder.remove();
+                if (getPref(Constant.DRIVER_ISACTIVE, false)) {
+                    if (trackOrder != null)
+                        trackOrder.remove();
+
+                    for (ListenerRegistration listenerRegistration : listSnapshot.values()) {
+                        listenerRegistration.remove();
+                    }
+                    clearMaps();
+                    centerMaps();
+
+                    deleteRoom();
+                    createRoom();
+                    listenOrder();
+                    updateTrackLocationDriver(true);
                 }
-                deleteRoom();
-                createRoom();
-                listenOrder();
-                updateTrackLocationDriver(true);
             }
         });
 

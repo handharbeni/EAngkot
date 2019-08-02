@@ -1,6 +1,9 @@
 package com.mhandharbeni.e_angkot;
 
 import android.app.Application;
+import android.content.Context;
+
+import androidx.multidex.MultiDex;
 
 import com.crashlytics.android.Crashlytics;
 import com.facebook.stetho.Stetho;
@@ -19,6 +22,11 @@ public class CoreApplication extends Application {
     private static ToolsFirebase toolsFirebase;
     private static FirebaseStorage storage;
 
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
     @Override
     public void onCreate() {
         super.onCreate();
