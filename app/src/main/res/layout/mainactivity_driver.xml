@@ -89,12 +89,16 @@
                     android:id="@+id/spinnerTujuan"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    app:smsp_isReSelectable="true"
+                    app:smsp_floatingLabelSize="0dp"
+                    app:smsp_hintSize="0dp"
+                    app:smsp_errorTextSize="0dp"
                     app:smsp_isSearchable="true"
                     app:smsp_enableFloatingLabel="false"
                     app:smsp_alwaysShowFloatingLabel="false"
                     app:smsp_hint="Daftar Tujuan"
                     android:spinnerMode="dialog"
-                    app:smsp_multilineError="false" />
+                    app:smsp_multilineError="true" />
             </LinearLayout>
 
 
