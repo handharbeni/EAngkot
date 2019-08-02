@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">E-Angkot</string>
+    <string name="app_name">ANGPAU</string>
     <string name="txt_email">EMAIL / USERNAME</string>
     <string name="txt_password">PASSWORD</string>
     <string name="txt_repeat_password">ULANGI PASSWORD</string>
