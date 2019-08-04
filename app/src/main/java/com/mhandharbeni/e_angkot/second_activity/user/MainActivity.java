@@ -9,7 +9,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Html;
 import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -407,8 +409,19 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                             navigation.setStartLocation(startLocation);
                             navigation.setEndPosition(endLocation);
 
+                            List<String> snippetStart = new ArrayList<>();
+                            List<String> snippetEnd = new ArrayList<>();
+                            snippetEnd.add("Plat Nomor : "+s);
+                            snippetEnd.add("Jurusan : "+checkedJurusan);
+                            snippetEnd.add("Tujuan : "+checkedTujuan);
+
+                            navigation.setSnippetStart(snippetStart);
+                            navigation.setSnippetEnd(snippetEnd);
+
+
                             navigation.setTitleStart("Anda");
-                            navigation.setTitleEnd(checkedJurusan+"-"+s);
+                            navigation.setTitleEnd(s);
+//                            navigation.setTitleEnd(spannedContent.toString());
 
                             navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
                             navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));
@@ -439,8 +452,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                             navigation.setStartLocation(startLocation);
                             navigation.setEndPosition(endLocation);
 
+                            List<String> snippetStart = new ArrayList<>();
+                            List<String> snippetEnd = new ArrayList<>();
+                            snippetEnd.add("Plat Nomor : "+entry.getKey());
+                            snippetEnd.add("Jurusan : "+checkedJurusan);
+                            snippetEnd.add("Tujuan : "+checkedTujuan);
+
+                            navigation.setSnippetStart(snippetStart);
+                            navigation.setSnippetEnd(snippetEnd);
+
                             navigation.setTitleStart("Anda");
-                            navigation.setTitleEnd(checkedJurusan+"-"+entry.getKey());
+                            navigation.setTitleEnd(entry.getKey());
+//                            navigation.setTitleEnd(spannedContent.toString());
 
                             navigation.setMarkerStart(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_user));
                             navigation.setMarkerEnd(bitmapDescriptorFromVector(getApplicationContext(), R.drawable.ic_angkot));

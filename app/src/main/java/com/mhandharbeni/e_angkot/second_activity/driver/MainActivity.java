@@ -229,6 +229,13 @@ public class MainActivity extends BaseActivity implements
                             navigation.setStartLocation(startLocation);
                             navigation.setEndPosition(endLocation);
 
+                            List<String> snippetStart = new ArrayList<>();
+                            List<String> snippetEnd = new ArrayList<>();
+
+                            navigation.setSnippetStart(snippetStart);
+                            navigation.setSnippetEnd(snippetEnd);
+
+
                             navigation.setTitleStart("Anda");
                             navigation.setTitleEnd("User");
 
@@ -258,6 +265,12 @@ public class MainActivity extends BaseActivity implements
                             LatLng endLocation = new LatLng(entry.getValue().latitude, entry.getValue().longitude);
                             navigation.setStartLocation(startLocation);
                             navigation.setEndPosition(endLocation);
+
+                            List<String> snippetStart = new ArrayList<>();
+                            List<String> snippetEnd = new ArrayList<>();
+
+                            navigation.setSnippetStart(snippetStart);
+                            navigation.setSnippetEnd(snippetEnd);
 
                             navigation.setTitleStart("Anda");
                             navigation.setTitleEnd("User");
