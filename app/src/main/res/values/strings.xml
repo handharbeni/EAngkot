@@ -1,3 +1,21 @@
 <resources>
-    <string name="app_name">E-Angkot</string>
+    <string name="app_name">ANGPAU</string>
+    <string name="txt_email">EMAIL / USERNAME</string>
+    <string name="txt_password">PASSWORD</string>
+    <string name="txt_repeat_password">ULANGI PASSWORD</string>
+    <string name="txt_daftar">Daftar?</string>
+    <string name="txt_masuk">Masuk</string>
+    <string name="txt_label_user">Daftar Sebagai User</string>
+    <string name="txt_label_driver">Daftar Sebagai Driver</string>
+    <string name="txt_label_masuk">Masuk?</string>
+    <string name="txt_label_masuk_user">Masuk Sebagai User</string>
+    <string name="txt_label_masuk_driver">Masuk Sebagai Driver</string>
+    <string name="label_akurasi">Akurasi\nPenjemputan</string>
+    <string name="label_penilaian">Penilaian</string>
+    <string name="label_nilai_kendaraan">Nilai\nKendaraan</string>
+    <string name="txt_nama">NAMA</string>
+    <string name="txt_alamat">ALAMAT</string>
+    <string name="txt_hp">NOMOR HANDPHONE</string>
+    <string name="txt_platnomor">PLAT NOMOR</string>
+    <string name="txt_dapat_angkot">DAPAT ANGKOT</string>
 </resources>

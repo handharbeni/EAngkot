@@ -1,1 +1,1 @@
-include ':app'
+include ':app', ':drawroutelibrary-0.0.3', ':drawroutelibrary-0.0.4', ':drawroutelibrary-0.0.5', ':drawroutelibrary-0.0.6', ':drawroutelibrary-0.0.7'
