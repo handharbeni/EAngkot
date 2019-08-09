@@ -40,6 +40,11 @@ public class Constant {
 
     public static String ID_USER = "ID_USER";
     public static String NAMA_USER = "NAMA_USER";
+    public static String IMAGE_USER = "IMAGE_USER";
+    public static String ALAMAT_USER = "ALAMAT_USER";
+    public static String PHONE_USER = "PHONE_USER";
+    public static String TYPE_USER = "TYPE_USER";
+
     public static String PLAT_NO = "PLAT_NO";
 
     public static String ID_TOKEN = "ID_TOKEN";

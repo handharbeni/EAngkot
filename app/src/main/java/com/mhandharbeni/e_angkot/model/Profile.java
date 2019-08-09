@@ -11,6 +11,7 @@ public class Profile {
     public String nomorHp;
     public Constant.TypeUser typeUser;
 
+
     public Profile() {
     }
 

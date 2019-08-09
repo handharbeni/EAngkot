@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
@@ -21,38 +20,25 @@ import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatImageView;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
-import com.bumptech.glide.Glide;
 import com.crashlytics.android.Crashlytics;
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.esafirm.imagepicker.features.ReturnMode;
 import com.esafirm.imagepicker.model.Image;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.storage.OnPausedListener;
-import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageMetadata;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -73,12 +59,10 @@ import com.squareup.picasso.Picasso;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import br.com.simplepass.circularprogressimagelib.CircularProgressImageView;
 import butterknife.BindView;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
@@ -128,26 +112,21 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     private void initDataProfile(){
-        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), (documentSnapshot, e) -> {
-            if (documentSnapshot.exists()){
-                if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
-                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(idProfile);
-                }else{
+        try {
+            getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), (documentSnapshot, e) -> {
+                if (documentSnapshot.exists()){
+                    Picasso.get().load(documentSnapshot.get("imageProfile").toString());
+                    setPref(Constant.IMAGE_USER, documentSnapshot.get("imageProfile").toString());
+                    if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
+                        Picasso.get().load(documentSnapshot.get("imageProfile").toString()).placeholder(R.drawable.ic_sync_white_profile).into(idProfile);
+                    }else{
 //                    Picasso.get().load(R.drawable.ic_account_circle_white).into(idProfile);
-                    idProfile.setImageResource(R.drawable.ic_account_circle_white);
+//                        idProfile.setImageResource(R.drawable.ic_account_circle_white);
+                        Picasso.get().load(R.drawable.ic_account_circle_white).placeholder(R.drawable.ic_sync_white_profile).into(idProfile);
+                    }
                 }
-            }
-        });
-//        getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
-//            if (documentSnapshot.exists()){
-//                if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
-//                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(idProfile);
-//                }else{
-////                    Picasso.get().load(R.drawable.ic_account_circle_white).into(idProfile);
-//                    idProfile.setImageResource(R.drawable.ic_account_circle_white);
-//                }
-//            }
-//        });
+            });
+        }catch (Exception ignored){}
     }
 
     public ToolsFirebase getFirebase() {
@@ -196,8 +175,9 @@ public class BaseActivity extends AppCompatActivity {
                 txtNama.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
                 txtAlamat.setText(Objects.requireNonNull(documentSnapshot.get("alamat")).toString());
                 txtNomorHape.setText(Objects.requireNonNull(documentSnapshot.get("nomorHp")).toString());
+                setPref(Constant.IMAGE_USER, documentSnapshot.get("imageProfile").toString());
                 if (!documentSnapshot.get("imageProfile").toString().isEmpty()){
-                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).into(profile_image);
+                    Picasso.get().load(documentSnapshot.get("imageProfile").toString()).placeholder(R.drawable.ic_sync_white_profile).into(profile_image);
                 }
             }
         });
@@ -207,7 +187,7 @@ public class BaseActivity extends AppCompatActivity {
                     getPref(Constant.ID_USER, "0"),
                     txtNama.getText().toString(),
                     txtAlamat.getText().toString(),
-                    "",
+                    getPref(Constant.IMAGE_USER, "https://firebasestorage.googleapis.com/v0/b/prototypeproject-1d503.appspot.com/o/E-ANGKOT%2Fuser.png?alt=media&token=c4e79611-7b05-4ade-9ad5-39e55e636f67"),
                     txtNomorHape.getText().toString(),
                     Constant.TypeUser.USER
             );

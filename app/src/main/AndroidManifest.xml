@@ -7,8 +7,10 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:hardwareAccelerated="true"
         android:name=".CoreApplication"
         android:allowBackup="true"
         android:icon="@drawable/logo_angkot"
@@ -28,13 +30,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".MainActivity"/>
-        <activity android:name=".main_activity.LoginActivity" />
-        <activity android:name=".main_activity.RegisterActivity" />
-        <activity android:name=".second_activity.user.MainActivity" />
-        <activity android:name=".main_activity.ProfileActivity" />
-        <activity android:name=".second_activity.driver.MainActivity" />
-        <activity android:name=".second_activity.user.ActiveOrderActivity" />
+        <activity android:name=".MainActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".main_activity.LoginActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".main_activity.RegisterActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".second_activity.user.MainActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".main_activity.ProfileActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".second_activity.driver.MainActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".second_activity.user.ActiveOrderActivity" android:hardwareAccelerated="true"/>
 
         <service android:name=".services.LocationServices" />
         <service android:name=".services.FirebaseServices" >
@@ -43,5 +45,4 @@
             </intent-filter>
         </service>
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
 </manifest>

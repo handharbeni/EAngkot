@@ -174,7 +174,7 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
         getFirebase().getDb().collection(Constant.COLLECTION_ROOM).document(platNo).get().addOnCompleteListener(task -> {
             listUser.clear();
             listUser.putAll((Map<String,String>) task.getResult().get("listUser"));
-            listUser.put(userCount, null);
+            listUser.remove(userCount);
 
             Room room = new Room();
             room.setPlatNo(platNo);

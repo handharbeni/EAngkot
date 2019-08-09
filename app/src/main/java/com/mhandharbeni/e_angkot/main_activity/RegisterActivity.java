@@ -16,7 +16,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.mhandharbeni.e_angkot.CoreApplication;
 import com.mhandharbeni.e_angkot.R;
+import com.mhandharbeni.e_angkot.model.Profile;
 import com.mhandharbeni.e_angkot.model.User;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
@@ -167,7 +169,7 @@ public class RegisterActivity extends BaseActivity {
         String email = txtEmail.getText().toString();
         String password = txtPassword.getText().toString();
         String repeatPassword = txtPasswordRepeat.getText().toString();
-        User user = new User(email, password);
+        User user = new User(email, password, "https://firebasestorage.googleapis.com/v0/b/prototypeproject-1d503.appspot.com/o/E-ANGKOT%2Fuser.png?alt=media&token=c4e79611-7b05-4ade-9ad5-39e55e636f67");
         if (password.equalsIgnoreCase(repeatPassword)) {
             String id = getFirebase()
                     .getDb()
@@ -184,6 +186,7 @@ public class RegisterActivity extends BaseActivity {
                     )
                     .document(id)
                     .set(user);
+
             Constant.CURRENT_USERNAME = email;
             Constant.CURRENT_PASSWORD = password;
 

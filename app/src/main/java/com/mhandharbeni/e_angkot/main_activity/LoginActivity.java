@@ -30,10 +30,15 @@ import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.Jurusan;
 import com.mhandharbeni.e_angkot.model.Location;
 import com.mhandharbeni.e_angkot.model.LocationDriver;
+import com.mhandharbeni.e_angkot.model.Profile;
 import com.mhandharbeni.e_angkot.model.Terminal;
 import com.mhandharbeni.e_angkot.second_activity.user.MainActivity;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
+import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
+import com.squareup.picasso.Picasso;
+
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -234,10 +239,36 @@ public class LoginActivity extends BaseActivity {
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
                     setPref(Constant.NAMA_USER, documentSnapshot.get("email").toString());
 
+                    getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot1 -> {
+                        if (documentSnapshot1.exists()){
+                            setPref(Constant.IMAGE_USER, documentSnapshot1.get("imageProfile").toString());
+                            setPref(Constant.NAMA_USER, documentSnapshot1.get("nama").toString());
+                            setPref(Constant.ALAMAT_USER, documentSnapshot1.get("alamat").toString());
+                            setPref(Constant.PHONE_USER, documentSnapshot1.get("nomorHp").toString());
+                            setPref(Constant.TYPE_USER, documentSnapshot1.get("typeUser").toString());
+                        }
+                    });
+
+
+
+
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
                     Location location = new Location(documentSnapshot.getId(), latitude, longitude, true, Constant.TOKEN);
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_USER).document(documentSnapshot.getId()).set(location);
+
+                    Profile profile = new Profile(
+                            getPref(Constant.ID_USER, "0"),
+                            getPref(Constant.NAMA_USER, ""),
+                            getPref(Constant.ALAMAT_USER, ""),
+                            getPref(Constant.IMAGE_USER, "https://firebasestorage.googleapis.com/v0/b/prototypeproject-1d503.appspot.com/o/E-ANGKOT%2Fuser.png?alt=media&token=c4e79611-7b05-4ade-9ad5-39e55e636f67"),
+                            getPref(Constant.PHONE_USER, ""),
+                            getPref(Constant.TYPE_USER, "").equalsIgnoreCase("USER")?Constant.TypeUser.USER:Constant.TypeUser.DRIVER
+                    );
+                    CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_PROFILE)
+                            .document(CoreApplication.getPref().getString(Constant.ID_USER, "0"))
+                            .set(profile);
+
                 }
                 setPref(Constant.IS_LOGGIN, true);
                 startActivity(new Intent(this, MainActivity.class));
@@ -267,14 +298,24 @@ public class LoginActivity extends BaseActivity {
                 logUser(platNo, email);
                 for (DocumentSnapshot documentSnapshot : task.getResult()) {
 
-
-
-                    showToast(getApplicationContext(), documentSnapshot.getId());
+//                    showToast(getApplicationContext(), documentSnapshot.getId());
 
                     setPref(Constant.ID_USER, documentSnapshot.getId());
                     setPref(Constant.ID_TOKEN, Constant.TOKEN);
                     setPref(Constant.PLAT_NO, platNo);
                     setPref(Constant.ID_JURUSAN, jurusan);
+
+                    getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot1 -> {
+                        if (documentSnapshot1.exists()){
+                            setPref(Constant.IMAGE_USER, documentSnapshot1.get("imageProfile").toString());
+                            setPref(Constant.NAMA_USER, documentSnapshot1.get("nama").toString());
+                            setPref(Constant.ALAMAT_USER, documentSnapshot1.get("alamat").toString());
+                            setPref(Constant.PHONE_USER, documentSnapshot1.get("nomorHp").toString());
+                            setPref(Constant.TYPE_USER, documentSnapshot1.get("typeUser").toString());
+                        }
+                    });
+
+
                     String latitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLatitude()) : "0.0";
                     String longitude = Constant.mLastLocation != null ? String.valueOf(Constant.mLastLocation.getLongitude()) : "0.0";
                     LocationDriver location = new LocationDriver(
@@ -289,7 +330,21 @@ public class LoginActivity extends BaseActivity {
                             CoreApplication.getPref().getString(Constant.ID_TUJUAN, "0")
                     );
                     getFirebase().getDb().collection(Constant.COLLECTION_TRACK_DRIVER).document(documentSnapshot.getId()).set(location);
+
+                    Profile profile = new Profile(
+                            getPref(Constant.ID_USER, "0"),
+                            getPref(Constant.NAMA_USER, ""),
+                            getPref(Constant.ALAMAT_USER, ""),
+                            getPref(Constant.IMAGE_USER, "https://firebasestorage.googleapis.com/v0/b/prototypeproject-1d503.appspot.com/o/E-ANGKOT%2Fuser.png?alt=media&token=c4e79611-7b05-4ade-9ad5-39e55e636f67"),
+                            getPref(Constant.PHONE_USER, ""),
+                            getPref(Constant.TYPE_USER, "").equalsIgnoreCase("USER")?Constant.TypeUser.USER:Constant.TypeUser.DRIVER
+                    );
+                    CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_PROFILE)
+                            .document(CoreApplication.getPref().getString(Constant.ID_USER, "0"))
+                            .set(profile);
+
                 }
+// TODO : BENAKNO BEN
                 setPref(Constant.IS_LOGGIN, true);
                 startActivity(new Intent(this, com.mhandharbeni.e_angkot.second_activity.driver.MainActivity.class));
                 finish();

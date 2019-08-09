@@ -318,7 +318,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 String idJurusan = checkedJurusan;
                 String tujuan = checkedTujuan;
                 boolean isActive = activeOrder;
-                ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, isActive, tujuan);
+                ActiveOrder activeOrder = new ActiveOrder(idUser, idJurusan, true, tujuan);
 
                 idDocument = CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document().getId();
 
@@ -546,10 +546,18 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                 if (queryDocumentSnapshots.getDocuments().size() > 0){
                     if (queryDocumentSnapshots.getDocuments().get(0).get("isActive") != null){
                         if ((boolean)queryDocumentSnapshots.getDocuments().get(0).get("isActive")){
-                            fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_close));
+                            try {
+                                fabOrder.setImageResource(R.drawable.ic_close);
+                            }catch (Exception a){
+                                fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_close));
+                            }
                             activeOrder = true;
                         }else{
-                            fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+                            try {
+                                fabOrder.setImageResource(R.drawable.ic_angkot);
+                            }catch (Exception a){
+                                fabOrder.setImageDrawable(getResources().getDrawable(R.drawable.ic_angkot));
+                            }
                             activeOrder = false;
                         }
                     }

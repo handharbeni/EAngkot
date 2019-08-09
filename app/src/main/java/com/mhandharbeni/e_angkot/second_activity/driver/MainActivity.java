@@ -305,7 +305,9 @@ public class MainActivity extends BaseActivity implements
         trackOrder = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
             if (queryDocumentSnapshots.getDocuments().size() > 0) {
                 for (DocumentSnapshot documentSnapshot : queryDocumentSnapshots.getDocuments()) {
-                    listenerUserOrder(documentSnapshot.get("idUser").toString(), (boolean) documentSnapshot.get("isActive"));
+                    if (documentSnapshot.get("isActive") != null){
+                        listenerUserOrder(documentSnapshot.get("idUser").toString(), (boolean) documentSnapshot.get("isActive"));
+                    }
                 }
             }
         });
@@ -323,10 +325,12 @@ public class MainActivity extends BaseActivity implements
                     );
                     listUser.put(idUser, latLngUser);
                     setTrack();
+                }else{
+                    listUser.clear();
+                    setTrack();
                 }
             });
             listSnapshot.put(idUser, listenerRegistration);
-            setTrack();
         } else {
             listUser.remove(idUser);
             listSnapshot.remove(idUser);
