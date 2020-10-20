@@ -483,7 +483,9 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
                     return;
                 }
             }
-            locationManager.requestLocationUpdates(provider, 1000, 500, this);
+            try {
+                locationManager.requestLocationUpdates(provider, 1000, 500, this);
+            } catch (Exception e){}
         }
     }
 
@@ -532,7 +534,7 @@ public class MainActivity extends BaseActivity implements OnMapReadyCallback, Na
         activeOrder = false;
         String idUser = getPref(Constant.ID_USER, "0");
         boolean isActive = false;
-        ActiveOrder activeOrder = new ActiveOrder(idUser, "", isActive, "");
+        ActiveOrder activeOrder = new ActiveOrder(idUser, "", false, "");
         getFirebase().getDb().collection(Constant.COLLECTION_ORDER).document(idUser).set(activeOrder);
     }
     private void listenOrder(){

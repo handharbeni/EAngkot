@@ -114,6 +114,8 @@ public class BaseActivity extends AppCompatActivity {
     private void initDataProfile(){
         try {
             getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), (documentSnapshot, e) -> {
+                Log.d(TAG, "initDataProfile: "+getPref(Constant.ID_USER, "0"));
+                Log.d(TAG, "initDataProfile: "+documentSnapshot.get("imageProfile"));
                 if (documentSnapshot.exists()){
                     Picasso.get().load(documentSnapshot.get("imageProfile").toString());
                     setPref(Constant.IMAGE_USER, documentSnapshot.get("imageProfile").toString());
@@ -159,7 +161,7 @@ public class BaseActivity extends AppCompatActivity {
         TextInputEditText txtAlamat = sheetView.findViewById(R.id.txtAlamat);
         TextInputEditText txtNomorHape = sheetView.findViewById(R.id.txtNomorHape);
         CircleImageView profile_image = sheetView.findViewById(R.id.profile_image);
-
+        
         Button btnUpdate = sheetView.findViewById(R.id.btnUpdate);
         Button btnKeluar = sheetView.findViewById(R.id.btnLogout);
 
@@ -170,6 +172,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         getFirebase().listenData(Constant.COLLECTION_PROFILE, getPref(Constant.ID_USER, "0"), documentSnapshot -> {
+            Log.d(TAG, "onProfileClick: "+documentSnapshot.get("imageProfile").toString());
             if (documentSnapshot.exists()){
                 profileName.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
                 txtNama.setText(Objects.requireNonNull(documentSnapshot.get("nama")).toString());
@@ -199,6 +202,7 @@ public class BaseActivity extends AppCompatActivity {
         });
 
         btnKeluar.setOnClickListener(view -> {
+            clearPref();
             setPref(Constant.IS_LOGGIN, false);
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -272,6 +276,11 @@ public class BaseActivity extends AppCompatActivity {
 
     public int getPref(String key, int defaultValue) {
         return getPref().getInt(key, defaultValue);
+    }
+
+    public void clearPref(){
+        getPref().edit().clear().commit();
+        getPref().edit().commit();
     }
 
     public void showLog(String TAG, String message) {
@@ -531,11 +540,8 @@ public class BaseActivity extends AppCompatActivity {
                 .build();
         UploadTask imageProfileRef = storageRef.child(Constant.STORAGE_FOLDER+"/"+CoreApplication.getPref().getString(Constant.ID_USER, "0")+".jpg").putFile(file, metadata);
         imageProfileRef
-                .addOnCompleteListener(task -> {
-                    showLog("Complete Upload", task.getResult().getMetadata().getBucket().toString());
-                })
+                .addOnCompleteListener(task -> showLog("Complete Upload", task.getResult().getMetadata().getBucket().toString()))
                 .addOnSuccessListener(taskSnapshot -> {
-//                    showLog("Complete Upload Success", );
                     taskSnapshot.getMetadata().getReference().getDownloadUrl().addOnCompleteListener(task -> {
                         showLog("Complete Upload Success", String.valueOf(task.getResult()));
                         if (sheetView != null){
@@ -558,6 +564,7 @@ public class BaseActivity extends AppCompatActivity {
                                     txtNomorHape.getText().toString(),
                                     Constant.TypeUser.USER
                             );
+                            setPref(Constant.IMAGE_USER, task.getResult().toString());
                             CoreApplication.getFirebase().getDb().collection(Constant.COLLECTION_PROFILE)
                                     .document(CoreApplication.getPref().getString(Constant.ID_USER, "0"))
                                     .set(profile);

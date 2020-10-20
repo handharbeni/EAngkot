@@ -28,7 +28,8 @@ public class Constant {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.INTERNET,
-            Manifest.permission.CALL_PHONE
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.FOREGROUND_SERVICE
     };
 
     public static Location mLastLocation;
@@ -63,7 +64,6 @@ public class Constant {
     public static String COLLECTION_RATING_ANGKOT = "e_angkot_rating_angkot";
     public static String COLLECTION_TRAVEL_HISTORY = "e_angkot_travel_history";
     public static String COLLECTION_TERMINAL = "e_angkot_terminal";
-
 
     public static String TOKEN = "TOKEN";
     public static String IS_LOGGIN = "ISLOGIN";
