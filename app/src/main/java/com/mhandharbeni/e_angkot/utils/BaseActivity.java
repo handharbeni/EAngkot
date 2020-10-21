@@ -30,7 +30,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.content.ContextCompat;
 
-import com.crashlytics.android.Crashlytics;
 import com.esafirm.imagepicker.features.ImagePicker;
 import com.esafirm.imagepicker.features.ReturnMode;
 import com.esafirm.imagepicker.model.Image;
@@ -494,9 +493,9 @@ public class BaseActivity extends AppCompatActivity {
         }
     }
     public void logUser(String nama, String email) {
-        Crashlytics.setUserIdentifier(nama);
-        Crashlytics.setUserEmail(email);
-        Crashlytics.setUserName(nama);
+//        Crashlytics.setUserIdentifier(nama);
+//        Crashlytics.setUserEmail(email);
+//        Crashlytics.setUserName(nama);
     }
 
     public void selectImage(){

@@ -38,6 +38,7 @@
         <activity android:name=".main_activity.ProfileActivity" android:hardwareAccelerated="true"/>
         <activity android:name=".second_activity.driver.MainActivity" android:hardwareAccelerated="true"/>
         <activity android:name=".second_activity.user.ActiveOrderActivity" android:hardwareAccelerated="true"/>
+        <activity android:name=".ChatActivity" android:hardwareAccelerated="true"/>
 
         <service android:name=".services.LocationServices" />
         <service android:name=".services.FirebaseServices" >

@@ -1,13 +1,16 @@
 package com.mhandharbeni.e_angkot.second_activity.driver;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -26,6 +29,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.firestore.CollectionReference;
@@ -37,6 +41,7 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.mhandharbeni.e_angkot.ChatActivity;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.LocationDriver;
 import com.mhandharbeni.e_angkot.model.Room;
@@ -85,6 +90,8 @@ public class MainActivity extends BaseActivity implements
     @BindView(R.id.spinnerTujuan)
     SmartMaterialSpinner spinnerTujuan;
 
+    BottomAppBar bottomAppBar;
+
     HashMap<String, LatLng> listUser = new HashMap<>();
     HashMap<String, ListenerRegistration> listSnapshot = new HashMap<>();
 
@@ -105,8 +112,27 @@ public class MainActivity extends BaseActivity implements
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         startServices();
+
         setContentView(R.layout.mainactivity_driver);
         ButterKnife.bind(this);
+
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        bottomAppBar.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case R.id.chatDriver:
+//                    showToast(getApplicationContext(), "Future Release");
+                    Bundle bundle = new Bundle();
+                    // getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0")
+                    // getPref(Constant.PLAT_NO, "0")
+                    bundle.putString(ChatActivity.KEY_ROOM, "N111AB");
+
+                    Intent intents = new Intent(this, ChatActivity.class);
+                    intents.putExtras(bundle);
+                    startActivity(intents);
+                    break;
+            }
+            return false;
+        });
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         if (mapFragment != null) {
@@ -320,8 +346,8 @@ public class MainActivity extends BaseActivity implements
             ListenerRegistration listenerRegistration = query.addSnapshotListener((queryDocumentSnapshots, e) -> {
                 if (queryDocumentSnapshots.getDocuments().size() > 0) {
                     LatLng latLngUser = new LatLng(
-                            Double.valueOf(queryDocumentSnapshots.getDocuments().get(0).get("latitude").toString()),
-                            Double.valueOf(queryDocumentSnapshots.getDocuments().get(0).get("longitude").toString())
+                            Double.parseDouble(queryDocumentSnapshots.getDocuments().get(0).get("latitude").toString()),
+                            Double.parseDouble(queryDocumentSnapshots.getDocuments().get(0).get("longitude").toString())
                     );
                     listUser.put(idUser, latLngUser);
                     setTrack();
@@ -432,7 +458,6 @@ public class MainActivity extends BaseActivity implements
     }
 
     private void updateTrackLocationDriver(boolean active){
-        boolean isActive = active;
         boolean isLogin = true;
         String id = getPref(Constant.ID_USER, "0");
         String jurusan = getPref(Constant.ID_JURUSAN, "0");
@@ -441,11 +466,11 @@ public class MainActivity extends BaseActivity implements
         String token = getPref(Constant.ID_TOKEN, "0");
         LocationDriver locationDriver = new LocationDriver();
         locationDriver.setId(id);
-        locationDriver.setActive(isActive);
+        locationDriver.setActive(active);
         locationDriver.setLogin(isLogin);
         locationDriver.setJurusan(jurusan);
         locationDriver.setTujuan(tujuan);
-        if (isActive){
+        if (active){
             String latitude = null;
             String longitude = null;
             if (mMap!=null){
@@ -522,6 +547,7 @@ public class MainActivity extends BaseActivity implements
         locationManager.requestLocationUpdates(provider, 10000, 5000, this);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @OnClick(R.id.fab)
     public void onInfoClick() {
         RecyclerView rvTravelHistory;

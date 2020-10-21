@@ -5,7 +5,7 @@ import android.content.Context;
 
 import androidx.multidex.MultiDex;
 
-import com.crashlytics.android.Crashlytics;
+//import com.crashlytics.android.Crashlytics;
 import com.facebook.stetho.Stetho;
 import com.google.firebase.analytics.FirebaseAnalytics;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -14,7 +14,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
-import io.fabric.sdk.android.Fabric;
+//import io.fabric.sdk.android.Fabric;
 
 public class CoreApplication extends Application {
 
@@ -30,7 +30,7 @@ public class CoreApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        Fabric.with(this, new Crashlytics());
+//        Fabric.with(this, new Crashlytics());
         storage = FirebaseStorage.getInstance(Constant.STORAGE_BUCKET);
         FirebaseAnalytics.getInstance(this);
         FirebaseMessaging.getInstance().setAutoInitEnabled(true);
