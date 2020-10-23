@@ -59,4 +59,16 @@ public class ChatRoom {
     public void setTime(String time) {
         this.time = time;
     }
+
+    @Override
+    public String toString() {
+        return "ChatRoom{" +
+                "idUser='" + idUser + '\'' +
+                ", imageProfile='" + imageProfile + '\'' +
+                ", name='" + name + '\'' +
+                ", message='" + message + '\'' +
+                ", typeMessage='" + typeMessage + '\'' +
+                ", time='" + time + '\'' +
+                '}';
+    }
 }

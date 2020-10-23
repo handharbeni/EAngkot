@@ -471,12 +471,14 @@ public class MainActivity extends BaseActivity implements
         locationDriver.setJurusan(jurusan);
         locationDriver.setTujuan(tujuan);
         if (active){
-            String latitude = null;
-            String longitude = null;
-            if (mMap!=null){
-                latitude = String.valueOf(mMap.getMyLocation().getLatitude());
-                longitude = String.valueOf(mMap.getMyLocation().getLongitude());
-            }
+            String latitude = "-7.983908";
+            String longitude = "112.621391";
+            try {
+                if (mMap!=null){
+                    latitude = String.valueOf(mMap.getMyLocation().getLatitude());
+                    longitude = String.valueOf(mMap.getMyLocation().getLongitude());
+                }
+            } catch (Exception e){}
             locationDriver.setLatitude(latitude);
             locationDriver.setLongitude(longitude);
         }

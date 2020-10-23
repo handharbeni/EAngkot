@@ -229,32 +229,32 @@ public class BaseActivity extends AppCompatActivity {
     public void setPref(String key, String value) {
         getPref().edit()
                 .putString(key, value)
-                .apply();
+                .commit();
     }
 
     public void setPref(String key, boolean value) {
         Log.d(TAG, "setPref: "+value);
         getPref().edit()
                 .putBoolean(key, value)
-                .apply();
+                .commit();
     }
 
     public void setPref(String key, float value) {
         getPref().edit()
                 .putFloat(key, value)
-                .apply();
+                .commit();
     }
 
     public void setPref(String key, long value) {
         getPref().edit()
                 .putLong(key, value)
-                .apply();
+                .commit();
     }
 
     public void setPref(String key, int value) {
         getPref().edit()
                 .putInt(key, value)
-                .apply();
+                .commit();
     }
 
     public String getPref(String key, String defaultValue) {

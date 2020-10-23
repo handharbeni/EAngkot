@@ -7,11 +7,20 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentChange;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.mhandharbeni.e_angkot.adapters.ChatAdapters;
 import com.mhandharbeni.e_angkot.model.ChatRoom;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
@@ -35,7 +44,9 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
 
 
     List<ChatRoom> listChat = new ArrayList<>();
+    List<ChatRoom> tempListChat = new ArrayList<>();
     ChatAdapters chatAdapters;
+    ListenerRegistration listener;
 
     String idRoom = null;
 
@@ -47,29 +58,63 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
 
         getBundleData();
         initAdapter();
+        listenData();
     }
 
     void getBundleData(){
         Bundle bundle = getIntent().getExtras();
         idRoom = bundle.getString(KEY_ROOM);
     }
-
     void listenData(){
-        getFirebase().listenData("e_angkot_chat/N111AB/room", (listDocument, e) -> {
-            listChat.clear();
-            for (DocumentSnapshot documentSnapshot : listDocument) {
-                ChatRoom cr = new ChatRoom();
-                cr.setIdUser(documentSnapshot.get("idUser").toString());
-                cr.setImageProfile(documentSnapshot.get("imageProfile").toString());
-                cr.setMessage(documentSnapshot.get("message").toString());
-                cr.setName(documentSnapshot.get("name").toString());
-                cr.setTime(documentSnapshot.get("time").toString());
-                cr.setTypeMessage(documentSnapshot.get("typeMessage").toString());
-                listChat.add(cr);
+//        listener = getFirebase().getDb().collection("e_angkot_chat/"+idRoom+"/room")
+//                .addSnapshotListener((snapshots, e) -> {
+//                    if (e != null) {
+//                        Log.w(TAG, "listen:error", e);
+//                        return;
+//                    }
+//
+//                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
+//                        if (dc.getType() == DocumentChange.Type.ADDED) {
+//                            ChatRoom cr = new ChatRoom();
+//                            cr.setIdUser(dc.getDocument().get("idUser").toString());
+//                            cr.setImageProfile(dc.getDocument().get("imageProfile").toString());
+//                            cr.setMessage(dc.getDocument().get("message").toString());
+//                            cr.setName(dc.getDocument().get("name").toString());
+//                            cr.setTime(dc.getDocument().get("time").toString());
+//                            cr.setTypeMessage(dc.getDocument().get("typeMessage").toString());
+//                            Log.d(TAG, "listenData: "+cr.toString());
+//                            chatAdapters.updateData(cr);
+//                            if (chatAdapters.getItemCount() > 0){
+//                                rvChat.smoothScrollToPosition(chatAdapters.getItemCount()-1);
+//                            }
+//                        }
+//                    }
+//
+//                });
+        getFirebase().listenData("e_angkot_chat/"+idRoom+"/room", (listDocument, e) -> {
+            if (listDocument != null){
+                if (listDocument.size() > 0){
+                    Log.d(TAG, "listenData: "+listDocument.size());
+//                    listChat.clear();
+                    tempListChat.clear();
+                    for (DocumentSnapshot documentSnapshot : listDocument) {
+                        Log.d(TAG, "onComplete: "+documentSnapshot.get("idUser").toString());
+                        ChatRoom cr = new ChatRoom();
+                        cr.setIdUser(documentSnapshot.get("idUser").toString());
+                        cr.setImageProfile(documentSnapshot.get("imageProfile").toString());
+                        cr.setMessage(documentSnapshot.get("message").toString());
+                        cr.setName(documentSnapshot.get("name").toString());
+                        cr.setTime(documentSnapshot.get("time").toString());
+                        cr.setTypeMessage(documentSnapshot.get("typeMessage").toString());
+                        tempListChat.add(cr);
+                    }
+//                    Collections.sort(tempListChat, (o1, o2) -> Long.valueOf(o1.time).compareTo(Long.valueOf(o2.time)));
+                    chatAdapters.updateData(tempListChat);
+                    if (chatAdapters.getItemCount() > 0){
+                        rvChat.smoothScrollToPosition(tempListChat.size()-1);
+                    }
+                }
             }
-            Collections.sort(listChat, (o1, o2) -> Long.valueOf(o1.time).compareTo(Long.valueOf(o2.time)));
-            chatAdapters.updateData(listChat);
-            rvChat.scrollToPosition(chatAdapters.getItemCount());
         });
     }
 
@@ -88,19 +133,57 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
         chatRoom.setTime(time);
         chatRoom.setImageProfile(imageProfile);
         chatRoom.setTypeMessage(typeMessage);
-        getFirebase().getDb().collection("e_angkot_chat/N111AB/room").document().set(chatRoom);
+        getFirebase().getDb().collection("e_angkot_chat/"+idRoom+"/room").document().set(chatRoom);
+
+        messageBox.setText("");
     }
 
     void initAdapter(){
         chatAdapters = new ChatAdapters(getApplicationContext(), listChat, this);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getApplicationContext());
+
+        linearLayoutManager.setStackFromEnd(true);
+
         rvChat.setLayoutManager(linearLayoutManager);
+
         rvChat.setAdapter(chatAdapters);
-        listenData();
+
+        if (chatAdapters.getItemCount() > 0){
+            rvChat.smoothScrollToPosition(listChat.size()-1);
+        }
+    }
+
+    void getAllData(){
+        CoreApplication.getFirebase().getDb().collection("e_angkot_chat/"+idRoom+"/room").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                for (DocumentChange documentChange : task.getResult().getDocumentChanges()) {
+                    Log.d(TAG, "onComplete: "+documentChange.getDocument().getData().get("idUser").toString());
+                    ChatRoom cr = new ChatRoom();
+                    cr.setIdUser(documentChange.getDocument().getData().get("idUser").toString());
+                    cr.setImageProfile(documentChange.getDocument().getData().get("imageProfile").toString());
+                    cr.setMessage(documentChange.getDocument().getData().get("message").toString());
+                    cr.setName(documentChange.getDocument().getData().get("name").toString());
+                    cr.setTime(documentChange.getDocument().getData().get("time").toString());
+                    cr.setTypeMessage(documentChange.getDocument().getData().get("typeMessage").toString());
+                    listChat.add(cr);
+                }
+
+                initAdapter();
+            }
+        });
     }
 
     @Override
     public void onChatClick(ChatRoom chatRoom) {
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        try {
+            listener.remove();
+        } catch (Exception e){}
+        super.onDestroy();
     }
 }
