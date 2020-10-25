@@ -37,7 +37,7 @@
                 android:text="Anda"
                 android:textSize="18sp"
                 android:textColor="@android:color/black"/>
-            <TextView
+            <com.vanniktech.emoji.EmojiTextView
                 android:layout_gravity="end"
                 android:gravity="end"
                 android:id="@+id/tvMessageRight"

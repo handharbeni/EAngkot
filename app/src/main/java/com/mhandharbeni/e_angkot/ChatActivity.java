@@ -5,10 +5,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -25,6 +27,9 @@ import com.mhandharbeni.e_angkot.adapters.ChatAdapters;
 import com.mhandharbeni.e_angkot.model.ChatRoom;
 import com.mhandharbeni.e_angkot.utils.BaseActivity;
 import com.mhandharbeni.e_angkot.utils.Constant;
+import com.vanniktech.emoji.EmojiButton;
+import com.vanniktech.emoji.EmojiEditText;
+import com.vanniktech.emoji.EmojiPopup;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,8 +44,10 @@ import butterknife.OnClick;
 public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInterface {
     public static String KEY_ROOM = "KEYROOM";
     @BindView(R.id.rvChat) RecyclerView rvChat;
-    @BindView(R.id.messageBox) TextView messageBox;
+    @BindView(R.id.messageBox) EmojiEditText messageBox;
     @BindView(R.id.btnSend) Button btnSend;
+    @BindView(R.id.showEmoticon) EmojiButton showEmoticon;
+    @BindView(R.id.rootView) ConstraintLayout rootView;
 
 
     List<ChatRoom> listChat = new ArrayList<>();
@@ -50,12 +57,14 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
 
     String idRoom = null;
 
+    EmojiPopup emojiPopup;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_chat);
         ButterKnife.bind(this);
-
+        emojiPopup = EmojiPopup.Builder.fromRootView(rootView).build(messageBox);
         getBundleData();
         initAdapter();
         listenData();
@@ -177,6 +186,11 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
     @Override
     public void onChatClick(ChatRoom chatRoom) {
 
+    }
+
+    @OnClick(R.id.showEmoticon)
+    public void openEmojiDialog(){
+        emojiPopup.toggle();
     }
 
     @Override

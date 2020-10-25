@@ -14,6 +14,8 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.ToolsFirebase;
 import com.pddstudio.preferences.encrypted.EncryptedPreferences;
+import com.vanniktech.emoji.EmojiManager;
+import com.vanniktech.emoji.ios.IosEmojiProvider;
 //import io.fabric.sdk.android.Fabric;
 
 public class CoreApplication extends Application {
@@ -46,6 +48,7 @@ public class CoreApplication extends Application {
                 .withSaveAsSingleton(true)
                 .build();
         toolsFirebase = new ToolsFirebase(getApplicationContext());
+        EmojiManager.install(new IosEmojiProvider());
     }
 
     public static EncryptedPreferences getPref() {

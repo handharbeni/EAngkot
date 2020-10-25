@@ -19,6 +19,7 @@ import com.mhandharbeni.e_angkot.model.ChatRoom;
 import com.mhandharbeni.e_angkot.utils.Constant;
 import com.mhandharbeni.e_angkot.utils.Utils;
 import com.squareup.picasso.Picasso;
+import com.vanniktech.emoji.EmojiTextView;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,7 @@ public class ChatAdapters extends RecyclerView.Adapter<ChatAdapters.ViewHolder>{
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        holder.itemView.setTag(position);
         ChatRoom chatRoom = listChat.get(position);
         Log.d("ChatAdapters", "onBindViewHolder: "+position+" "+chatRoom.toString());
         String currentUser = CoreApplication.getPref().getString(Constant.ID_USER, "0");
@@ -70,6 +72,11 @@ public class ChatAdapters extends RecyclerView.Adapter<ChatAdapters.ViewHolder>{
         return listChat.size();
     }
 
+    @Override
+    public int getItemViewType(int position) {
+        return position;
+    }
+
     public void updateData(ChatRoom chatRoom){
 //        if (!listChat.contains(chatRoom)){
         this.listChat.add(chatRoom);
@@ -81,6 +88,7 @@ public class ChatAdapters extends RecyclerView.Adapter<ChatAdapters.ViewHolder>{
     public void updateData(List<ChatRoom> newChat){
         this.listChat.clear();
         this.listChat.addAll(newChat);
+        Collections.sort(this.listChat, (o1, o2) -> Long.valueOf(o1.time).compareTo(Long.valueOf(o2.time)));
         notifyDataSetChanged();
     }
 
@@ -88,14 +96,14 @@ public class ChatAdapters extends RecyclerView.Adapter<ChatAdapters.ViewHolder>{
     public static class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.chatRight) CardView chatRight;
         @BindView(R.id.tvTimeRight) TextView tvTimeRight;
-        @BindView(R.id.tvMessageRight) TextView tvMessageRight;
+        @BindView(R.id.tvMessageRight) EmojiTextView tvMessageRight;
 
 
         @BindView(R.id.chatLeft) CardView chatLeft;
         @BindView(R.id.ivPhotoLeft) ImageView ivPhotoLeft;
         @BindView(R.id.tvNamaLeft) TextView tvNamaLeft;
         @BindView(R.id.tvTimeLeft) TextView tvTimeLeft;
-        @BindView(R.id.tvMessageLeft) TextView tvMessageLeft;
+        @BindView(R.id.tvMessageLeft) EmojiTextView tvMessageLeft;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);

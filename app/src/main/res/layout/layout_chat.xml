@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -16,6 +17,7 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <LinearLayout
+        android:gravity="center"
         android:padding="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -25,17 +27,25 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:weightSum="1">
-        <EditText
+        <com.vanniktech.emoji.EmojiButton
+            android:layout_gravity="center"
+            android:id="@+id/showEmoticon"
+            android:background="@drawable/ic_emoticons"
+            android:layout_width="35dp"
+            android:layout_height="35dp"/>
+        <com.vanniktech.emoji.EmojiEditText
+            android:layout_gravity="center"
             android:id="@+id/messageBox"
             android:layout_weight="0.9"
             android:hint="MESSAGE"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
         <Button
+            android:layout_gravity="center"
+            android:background="@drawable/ic_send"
             android:id="@+id/btnSend"
             android:layout_weight="0.1"
-            android:text="SEND"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_width="35dp"
+            android:layout_height="35dp"/>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
