@@ -92,6 +92,7 @@
 
 
             <Button
+                android:textColor="@color/ef_black_alpha_50"
                 style="@style/Widget.MaterialComponents.Button"
                 android:textSize="20sp"
                 android:layout_width="match_parent"
