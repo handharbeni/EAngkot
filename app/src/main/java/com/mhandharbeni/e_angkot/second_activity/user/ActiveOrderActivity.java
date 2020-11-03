@@ -1,6 +1,7 @@
 package com.mhandharbeni.e_angkot.second_activity.user;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
@@ -31,6 +32,7 @@ import com.karumi.dexter.MultiplePermissionsReport;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
+import com.mhandharbeni.e_angkot.ChatActivity;
 import com.mhandharbeni.e_angkot.R;
 import com.mhandharbeni.e_angkot.model.RatingAngkot;
 import com.mhandharbeni.e_angkot.model.RatingDriver;
@@ -64,7 +66,9 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
 
     BottomAppBar bottomAppBar;
     String phoneNumberDriver = null;
+    String idOrder = null;
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,7 +92,14 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
         bottomAppBar.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.chat:
-                    showToast(getApplicationContext(), "Future Release");
+//                    showToast(getApplicationContext(), "Future Release");
+                    Bundle bundle = new Bundle();
+                    // getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0")
+                    bundle.putString(ChatActivity.KEY_ROOM, "N111AB");
+
+                    Intent intents = new Intent(this, ChatActivity.class);
+                    intents.putExtras(bundle);
+                    startActivity(intents);
                     break;
                 case R.id.call :
                     if (phoneNumberDriver != null){

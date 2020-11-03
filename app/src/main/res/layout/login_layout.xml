@@ -107,7 +107,8 @@
 
 
             <Button
-                style="@style/Widget.MaterialComponents.Button"
+                android:textColor="@color/ef_black_alpha_50"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:textSize="20sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
