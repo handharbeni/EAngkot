@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.TextView;
@@ -122,9 +123,9 @@ public class MainActivity extends BaseActivity implements
                 case R.id.chatDriver:
 //                    showToast(getApplicationContext(), "Future Release");
                     Bundle bundle = new Bundle();
-                    // getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0")
-                    // getPref(Constant.PLAT_NO, "0")
-                    bundle.putString(ChatActivity.KEY_ROOM, "N111AB");
+//                    Log.d(TAG, "onCreate: "+getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0"));
+//                    Log.d(TAG, "onCreate: "+getPref(Constant.ACTIVE_ORDER_PLATNO, "0"));
+                    bundle.putString(ChatActivity.KEY_ROOM, getPref(Constant.PLAT_NO, "0"));
 
                     Intent intents = new Intent(this, ChatActivity.class);
                     intents.putExtras(bundle);

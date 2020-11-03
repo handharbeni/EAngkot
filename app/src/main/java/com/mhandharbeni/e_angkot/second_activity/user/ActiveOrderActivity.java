@@ -10,6 +10,7 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -95,7 +96,9 @@ public class ActiveOrderActivity extends BaseActivity implements OnMapReadyCallb
 //                    showToast(getApplicationContext(), "Future Release");
                     Bundle bundle = new Bundle();
                     // getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0")
-                    bundle.putString(ChatActivity.KEY_ROOM, "N111AB");
+                    Log.d(TAG, "onCreate: "+getPref(Constant.ACTIVE_ORDER_IDDRIVER, "0"));
+                    Log.d(TAG, "onCreate: "+getPref(Constant.ACTIVE_ORDER_PLATNO, "0"));
+                    bundle.putString(ChatActivity.KEY_ROOM, getPref(Constant.ACTIVE_ORDER_PLATNO, "0"));
 
                     Intent intents = new Intent(this, ChatActivity.class);
                     intents.putExtras(bundle);

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -68,43 +69,22 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
         getBundleData();
         initAdapter();
         listenData();
+
+        hideSwitchActionBar();
     }
 
     void getBundleData(){
         Bundle bundle = getIntent().getExtras();
         idRoom = bundle.getString(KEY_ROOM);
     }
+
+    public void hideSwitchActionBar(){ idSwitch.setVisibility(View.GONE); }
+
     void listenData(){
-//        listener = getFirebase().getDb().collection("e_angkot_chat/"+idRoom+"/room")
-//                .addSnapshotListener((snapshots, e) -> {
-//                    if (e != null) {
-//                        Log.w(TAG, "listen:error", e);
-//                        return;
-//                    }
-//
-//                    for (DocumentChange dc : snapshots.getDocumentChanges()) {
-//                        if (dc.getType() == DocumentChange.Type.ADDED) {
-//                            ChatRoom cr = new ChatRoom();
-//                            cr.setIdUser(dc.getDocument().get("idUser").toString());
-//                            cr.setImageProfile(dc.getDocument().get("imageProfile").toString());
-//                            cr.setMessage(dc.getDocument().get("message").toString());
-//                            cr.setName(dc.getDocument().get("name").toString());
-//                            cr.setTime(dc.getDocument().get("time").toString());
-//                            cr.setTypeMessage(dc.getDocument().get("typeMessage").toString());
-//                            Log.d(TAG, "listenData: "+cr.toString());
-//                            chatAdapters.updateData(cr);
-//                            if (chatAdapters.getItemCount() > 0){
-//                                rvChat.smoothScrollToPosition(chatAdapters.getItemCount()-1);
-//                            }
-//                        }
-//                    }
-//
-//                });
         getFirebase().listenData("e_angkot_chat/"+idRoom+"/room", (listDocument, e) -> {
             if (listDocument != null){
                 if (listDocument.size() > 0){
                     Log.d(TAG, "listenData: "+listDocument.size());
-//                    listChat.clear();
                     tempListChat.clear();
                     for (DocumentSnapshot documentSnapshot : listDocument) {
                         Log.d(TAG, "onComplete: "+documentSnapshot.get("idUser").toString());
@@ -117,7 +97,6 @@ public class ChatActivity extends BaseActivity implements ChatAdapters.ChatInter
                         cr.setTypeMessage(documentSnapshot.get("typeMessage").toString());
                         tempListChat.add(cr);
                     }
-//                    Collections.sort(tempListChat, (o1, o2) -> Long.valueOf(o1.time).compareTo(Long.valueOf(o2.time)));
                     chatAdapters.updateData(tempListChat);
                     if (chatAdapters.getItemCount() > 0){
                         rvChat.smoothScrollToPosition(tempListChat.size()-1);
