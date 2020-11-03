@@ -227,13 +227,13 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     public void setPref(String key, String value) {
+        Log.d(TAG, "setPref: "+key+" "+value);
         getPref().edit()
                 .putString(key, value)
                 .commit();
     }
 
     public void setPref(String key, boolean value) {
-        Log.d(TAG, "setPref: "+value);
         getPref().edit()
                 .putBoolean(key, value)
                 .commit();
